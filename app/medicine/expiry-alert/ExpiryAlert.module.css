@@ -1,0 +1,29 @@
+.page { width: 100%; }
+
+.customPageHeader { margin-bottom: 0; 
+  padding: 3px 10px;
+   min-height: 38px; }
+
+.customHeaderAction { display: flex; align-items: center; gap: 8px; }
+
+.warnBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fce4ec;
+  border: 1px solid #f8bbd0;
+  color: #c62828;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.warnIcon { font-size: 18px; }
+
+.tdExpiry { font-weight: 700; color: var(--red-btn); }
+
+.daysExpired { color: #d32f2f; font-weight: 700; }
+.daysUrgent { color: #e65100; font-weight: 600; }
+.daysSoon { color: #f9a825; font-weight: 600; }
+.daysOk { color: #2e7d32; }

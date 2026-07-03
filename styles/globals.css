@@ -1,0 +1,101 @@
+/* D-Care Global Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --teal-dark: #00695c;
+  --teal-primary: #00897b;
+  --teal-light: #00acc1;
+  --teal-header: #00838f;
+  --teal-btn: #009688;
+  --sidebar-bg: #1a2e35;
+  --sidebar-hover: #00695c;
+  --sidebar-active: #00796b;
+  --sidebar-text: #e0f2f1;
+  --sidebar-subtext: #b2dfdb;
+  --white: #ffffff;
+  --gray-50: #f8fafb;
+  --gray-100: #f1f5f4;
+  --gray-200: #e2e8e6;
+  --gray-300: #cbd5d2;
+  --gray-400: #9eada9;
+  --gray-600: #4b6360;
+  --gray-700: #334744;
+  --gray-800: #1f2e2c;
+  --red-btn: #e53935;
+  --red-hover: #c62828;
+  --green-btn: #43a047;
+  --green-hover: #2e7d32;
+  --yellow-warn: #f9a825;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+html, body {
+  font-family: var(--font);
+  background: var(--gray-50);
+  color: var(--gray-800);
+  font-size: 14px;
+  line-height: 1.5;
+  height: 100%;
+}
+
+#__next { height: 100%; }
+
+a { text-decoration: none; color: inherit; }
+
+button { cursor: pointer; font-family: var(--font); }
+
+input, select {
+  font-family: var(--font);
+  font-size: 14px;
+}
+
+/* Toastify overrides */
+.Toastify__toast { font-family: var(--font) !important; font-size: 14px !important; }
+
+@import "tailwindcss";
+
+@theme {
+  --color-border: hsl(var(--border));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-teal-50: #e0f2f1;
+  --color-teal-100: #b2dfdb;
+  --color-teal-200: #80cbc4;
+  --color-teal-300: #4db6ac;
+  --color-teal-400: #26a69a;
+  --color-teal-500: #009688;
+  --color-teal-600: #00897b;
+  --color-teal-700: #00796b;
+  --color-teal-800: #00695c;
+  --color-teal-900: #004d40;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --border: 214.3 31.8% 91.4%;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

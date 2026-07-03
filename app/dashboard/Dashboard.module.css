@@ -1,0 +1,44 @@
+.page { max-width: 1000px; }
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 24px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid transparent;
+}
+
+.card_teal { border-left-color: var(--teal-primary); }
+.card_orange { border-left-color: #ff9800; }
+.card_red { border-left-color: var(--red-btn); }
+.card_blue { border-left-color: #1976d2; }
+
+.cardIcon {
+  font-size: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.card_teal .cardIcon { color: var(--teal-primary); }
+.card_orange .cardIcon { color: #ff9800; }
+.card_red .cardIcon { color: var(--red-btn); }
+.card_blue .cardIcon { color: #1976d2; }
+
+.cardValue { font-size: 28px; font-weight: 700; color: var(--gray-800); }
+.cardLabel { font-size: 13px; color: var(--gray-400); margin-top: 2px; }

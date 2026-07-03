@@ -1,0 +1,72 @@
+.page { width: 100%; }
+
+.pageTitle {
+  margin: 0 0 14px; padding: 10px 16px; font-size: 15px; font-weight: 600;
+  background: var(--teal-primary); color: white;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.formBar { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.formGroup { display: flex; flex-direction: column; gap: 2px; min-width: 180px; }
+.formGroup label { font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.4px; }
+.formGroup label .required { color: var(--red-btn); margin-left: 2px; }
+.formGroup select { padding: 5px 8px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); font-size: 12.5px; outline: none; background: white; font-family: inherit; }
+.formGroup select:focus { border-color: var(--teal-primary); }
+
+.subTabs { display: flex; gap: 0; border-bottom: 2px solid var(--gray-200); margin-bottom: 14px; }
+.subTab { padding: 8px 18px; font-size: 13px; font-weight: 500; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; color: var(--gray-500); transition: color 0.15s, border-color 0.15s; }
+.subTab:hover { color: var(--gray-800); }
+.subTabActive { color: var(--teal-primary); border-bottom-color: var(--teal-primary); font-weight: 600; }
+.tabCount { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; font-size: 11px; font-weight: 700; background: var(--gray-200); color: var(--gray-600); margin-left: 6px; }
+.subTabActive .tabCount { background: #b2dfdb; color: var(--teal-primary); }
+
+.requestBtn { padding: 4px 12px; background: var(--teal-primary); color: white; border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer; }
+.requestBtn:hover { opacity: 0.85; }
+.requestBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.removeBtnSm { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: none; border-radius: var(--radius-sm); background: var(--red-btn); color: white; font-size: 13px; cursor: pointer; }
+.removeBtnSm:hover { opacity: 0.85; }
+
+.stockOk { color: var(--teal-primary); font-weight: 600; }
+.stockLow { color: #e65100; font-weight: 600; }
+.stockZero { color: var(--red-btn); font-weight: 600; }
+
+.qtyInput { width: 60px; text-align: center; padding: 3px 4px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); font-size: 12px; outline: none; font-family: inherit; }
+.qtyInput:focus { border-color: var(--teal-primary); }
+
+.saveBar { display: flex; justify-content: flex-end; gap: 8px; margin-top: 36px; }
+.saveBtn, .cancelBtn { display: flex; align-items: center; gap: 6px; padding: 6px 16px; border: none; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 600; cursor: pointer; transition: opacity 0.12s; }
+.saveBtn { background: var(--teal-primary); color: white; }
+.saveBtn:hover { opacity: 0.9; }
+.saveBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+.cancelBtn { background: var(--gray-200); color: var(--gray-700); }
+.cancelBtn:hover { background: var(--gray-300); }
+
+.emptyState { text-align: center; padding: 40px 16px; color: var(--gray-500); font-size: 14px; }
+.selectionBar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.selectionCount { font-size: 12px; color: var(--gray-500); font-weight: 600; }
+.addSelectedBtn { padding: 5px 14px; background: var(--teal-primary); color: white; border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer; }
+.addSelectedBtn:hover { opacity: 0.85; }
+.addSelectedBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modalContent { background: white; border-radius: var(--radius-lg); width: 700px; max-width: 90vw; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+.modalHeader { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--teal-primary); color: white; }
+.modalHeader h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.modalCloseBtn { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; font-size: 18px; cursor: pointer; }
+.modalCloseBtn:hover { background: rgba(255,255,255,0.35); }
+.modalBody { padding: 16px 20px; }
+.modalFooter { display: flex; justify-content: flex-end; gap: 8px; padding: 0 16px 16px; }
+.detailGrid { display: flex; flex-direction: column; }
+.detailRow { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+.detailRow:last-child { border-bottom: none; }
+.detailLabel { min-width: 140px; font-size: 12.5px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.4px; }
+.detailValue { font-size: 14px; color: var(--gray-800); }
+.itemsTable { width: 100%; border-collapse: collapse; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); overflow: hidden; }
+.itemsTable th { background: var(--gray-100); text-align: left; font-size: 10px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.3px; padding: 5px 7px; border-bottom: 1px solid var(--gray-200); }
+.itemsTable td { padding: 3px 7px; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+.itemsTable tbody tr:hover { background: #f0fdfa; }
+.approveLabel { font-size: 12.5px; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-bottom: 6px; }
+.approveQtyInput { width: 100%; padding: 4px 6px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); font-size: 12.5px; outline: none; font-family: inherit; box-sizing: border-box; text-align: center; }
+.approveQtyInput:focus { border-color: var(--teal-primary); }
+
+.pageHeader { padding: 4px 10px; min-height: 38px; }

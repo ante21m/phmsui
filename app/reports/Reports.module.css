@@ -1,0 +1,100 @@
+.page { width: 100%; }
+
+.headerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--teal-primary);
+  color: white;
+  padding: 8px 14px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-md);
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+@media print {
+  .filters, .headerActions { display: none !important; }
+}
+
+.customPageHeader { margin-bottom: 0; padding: 4px 10px; min-height: 38px; }
+
+.customHeaderAction { display: flex; align-items: center; gap: 8px; }
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+}
+
+.filterLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-600);
+}
+
+.dateInput {
+  padding: 4px 6px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  outline: none;
+}
+
+.dateInput:focus { border-color: var(--teal-primary); }
+
+.filterBtn, .actionBtnInline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--gray-300);
+  border-radius: 50%;
+  background: white;
+  color: var(--gray-600);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.filterBtn:hover,
+.actionBtnInline:hover {
+  background: var(--teal-primary);
+  color: white;
+  border-color: var(--teal-primary);
+}
+
+.actionBtnPdf { background: #D74C4D; color: white; border-color: #D74C4D; }
+.actionBtnPdf:hover { opacity: 0.85; }
+.actionGroup { display: flex; align-items: center; gap: 4px; margin: 0 auto; }
+
+.totalsRow {
+  display: flex;
+  gap: 20px;
+  padding: 12px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.totalsLabel { color: var(--gray-600); }
+
+.totalsValue { color: var(--teal-primary); }
+
+.amount { text-align: right; }

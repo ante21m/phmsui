@@ -1,0 +1,151 @@
+.sidebar {
+  min-height: 100vh;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebarClosed {
+  width: 0 !important;
+  overflow: hidden;
+}
+
+.logo {
+  padding: 14px 12px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.logoD { color: #4caf50; }
+.logoDash { color: #ffffff; margin: 0 1px; }
+.logoC { color: #f44336; }
+.logoA { color: #ff9800; }
+.logoR { color: #4caf50; }
+.logoE { color: #2196f3; }
+
+.nav {
+  flex: 1;
+  padding: 8px 0;
+  overflow-y: auto;
+}
+
+.nav::-webkit-scrollbar { width: 4px; }
+.nav::-webkit-scrollbar-track { background: transparent; }
+.nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+.navItem,
+.navGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  color: var(--sidebar-subtext);
+  font-size: 13.5px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+}
+
+.navItem:hover,
+.navGroup:hover {
+  background: var(--sidebar-hover);
+  color: var(--white);
+}
+
+.navItemActive {
+  background: var(--sidebar-active) !important;
+  color: var(--white) !important;
+}
+
+.navIcon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.navLabel { flex: 1; }
+
+.arrow {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+}
+
+.badge {
+  background: var(--red-btn);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.subNav {
+  background: rgba(0,0,0,0.2);
+  border-left: 3px solid var(--teal-primary);
+  margin-left: 0;
+}
+
+.subNavItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px 6px 22px;
+  color: var(--sidebar-subtext);
+  font-size: 13px;
+  font-weight: 400;
+  transition: background 0.15s, color 0.15s;
+}
+
+.subNavItem:hover {
+  background: var(--sidebar-hover);
+  color: var(--white);
+}
+
+.subNavItemActive {
+  color: #ffffff !important;
+  background: rgba(0,150,136,0.3) !important;
+  font-weight: 500;
+}
+
+.subIcon {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  opacity: 0.8;
+}
+
+.dragHandle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 100%;
+  cursor: ew-resize;
+  background: transparent;
+  transition: background 0.15s;
+  z-index: 10;
+}
+
+.dragHandle:hover,
+.dragHandle:active {
+  background: var(--teal-primary);
+}
+
+

@@ -1,0 +1,35 @@
+.page { width: 100%; }
+
+.customPageHeader { margin-bottom: 0; padding: 4px 10px; min-height: 38px; }
+.customHeaderAction { display: flex; align-items: center; gap: 6px; }
+
+.addBtn {
+  display: flex; align-items: center; gap: 6px;
+  background: white; color: var(--teal-dark);
+  border: none; padding: 6px 12px; border-radius: var(--radius-md);
+  font-size: 13.5px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+.addBtn:hover { background: var(--gray-100); box-shadow: var(--shadow-md); }
+
+.actionBtns { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.editBtn, .deleteBtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border: none; border-radius: var(--radius-sm);
+  font-size: 15px; cursor: pointer; transition: opacity 0.12s, transform 0.1s;
+}
+.editBtn { background: var(--teal-primary); color: white; }
+.deleteBtn { background: var(--red-btn); color: white; }
+.editBtn:hover, .deleteBtn:hover { opacity: 0.85; transform: scale(1.05); }
+
+.inlineConfirm { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.confirmText { font-size: 12px; font-weight: 600; color: var(--red-btn); }
+.confirmYes, .confirmNo {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border: none; border-radius: var(--radius-sm);
+  font-size: 14px; cursor: pointer; transition: opacity 0.12s;
+}
+.confirmYes { background: var(--red-btn); color: white; }
+.confirmNo { background: var(--gray-200); color: var(--gray-600); }
+.confirmYes:hover, .confirmNo:hover { opacity: 0.8; }

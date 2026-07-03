@@ -1,0 +1,105 @@
+.page { width: 100%; }
+
+.pageTitle {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--teal-primary); color: white;
+  padding: 10px 16px; margin: 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+.pageTitle h2 { margin: 0; font-size: 17px; font-weight: 600; }
+
+.tabs {
+  display: flex; gap: 0; margin-bottom: 16px;
+  border-bottom: 2px solid var(--gray-200);
+}
+.tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 20px; font-size: 14px; font-weight: 500;
+  color: var(--gray-600); background: none; border: none;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  cursor: pointer; transition: all 0.15s;
+}
+.tab:hover { color: var(--gray-800); }
+.tabActive { color: var(--teal-primary); border-bottom-color: var(--teal-primary); font-weight: 600; }
+.tabCount {
+  background: var(--gray-200); color: var(--gray-700);
+  font-size: 11px; font-weight: 700; padding: 1px 7px;
+  border-radius: 10px; line-height: 1.5;
+}
+.tabActive .tabCount { background: #b2dfdb; color: var(--teal-primary); }
+
+.addBtn {
+  display: flex; align-items: center; gap: 6px;
+  background: white; color: var(--teal-dark);
+  border: none; padding: 6px 12px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s;
+}
+.addBtn:hover { background: var(--gray-100); }
+
+.statusBadge {
+  display: inline-block; padding: 3px 10px; border-radius: 12px;
+  font-size: 12px; font-weight: 600;
+}
+.statusDraft { background: #e3f2fd; color: #1565c0; }
+.statusSubmitted { background: #fff3e0; color: #e65100; }
+.statusApproved { background: #e8f5e9; color: #2e7d32; }
+.statusRejected { background: #ffebee; color: #c62828; }
+
+.selectionBar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 16px; background: #e8f5e9; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; color: #2e7d32;
+}
+.submitSelectedBtn, .clearBtn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border: none; border-radius: var(--radius-sm);
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.submitSelectedBtn { background: #2e7d32; color: white; }
+.submitSelectedBtn:hover { opacity: 0.9; }
+.submitSelectedBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.clearBtn { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
+.clearBtn:hover { background: var(--gray-100); }
+
+.actionBtns { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.actionDisabled { color: var(--gray-400); font-size: 12px; }
+
+.actionView, .actionEdit, .actionDelete, .actionApprove, .actionReject, .actionSubmit {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border: none; border-radius: var(--radius-sm);
+  font-size: 15px; cursor: pointer; transition: opacity 0.12s, transform 0.1s;
+}
+.actionView { background: var(--gray-200); color: var(--gray-700); }
+.actionEdit { background: var(--teal-primary); color: white; }
+.actionDelete { background: var(--red-btn); color: white; }
+.actionApprove { background: #2e7d32; color: white; }
+.actionReject { background: #c62828; color: white; }
+.actionSubmit { background: var(--teal-primary); color: white; }
+.actionView:hover, .actionEdit:hover, .actionDelete:hover, .actionApprove:hover, .actionReject:hover, .actionSubmit:hover { opacity: 0.85; transform: scale(1.05); }
+
+.modalBody { padding: 16px 20px; }
+.detailGrid { display: flex; flex-direction: column; }
+.detailRow {
+  display: flex; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--gray-100);
+}
+.detailRow:last-child { border-bottom: none; }
+.detailLabel {
+  min-width: 140px; font-size: 12.5px; font-weight: 600;
+  color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.4px;
+}
+.detailValue { font-size: 14px; color: var(--gray-800); }
+
+.printTitle { display: none; }
+
+@media print {
+  .printTitle { display: block !important; font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  .page > .pageTitle,
+  .page > .tabs,
+  .page > .inlineForm {
+    display: none !important;
+  }
+  .smartRoot > div:first-child { display: none !important; }
+  .smartRoot > div:last-child:not(:nth-child(2)) { display: none !important; }
+}

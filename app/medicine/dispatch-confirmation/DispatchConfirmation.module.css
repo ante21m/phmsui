@@ -1,0 +1,151 @@
+.page { width: 100%; }
+
+.customPageHeader { margin-bottom: 0;
+padding: 4px 10px; min-height: 38px; }
+.customHeaderAction { display: flex; align-items: center; gap: 8px; }
+.pageTitle {
+  font-size: 17px; font-weight: 600; color: white; margin: 0 0 0 0;
+  background: var(--teal-primary); padding: 10px 16px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.filterBar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 12px; background: white;
+  border: 1px solid var(--gray-200); border-top: none;
+  flex-wrap: wrap;
+}
+.filterField { display: flex; align-items: center; gap: 6px; }
+.filterField label { font-size: 12px; font-weight: 600; color: var(--gray-600); }
+.filterField input {
+  padding: 6px 10px; border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm); font-size: 13px;
+}
+.filterActions { flex: 1; display: flex; justify-content: center; gap: 12px; }
+.filterActionIcon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border: none; border-radius: var(--radius-sm);
+  font-size: 15px; cursor: pointer; transition: opacity 0.12s;
+}
+.filterActionIcon:hover { opacity: 0.85; }
+.filterApply { background: var(--teal-primary); color: white; }
+.filterPdf { background: #e53935; color: white; }
+.filterPrint { background: #1565c0; color: white; }
+
+.printTitle { display: none; }
+
+@media print {
+  .printTitle { display: block !important; font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  .page > h2, .page > .tabs, .page > .filterBar { display: none !important; }
+  .smartRoot > div:first-child { display: none !important; }
+  .smartRoot > div:last-child:not(:nth-child(2)) { display: none !important; }
+}
+
+.tabs {
+  display: flex; gap: 0; margin-bottom: 16px;
+  border-bottom: 2px solid var(--gray-200);
+}
+.tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 20px; font-size: 14px; font-weight: 500;
+  color: var(--gray-600); background: none; border: none;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  cursor: pointer; transition: all 0.15s;
+}
+.tab:hover { color: var(--gray-800); }
+.tabActive { color: var(--teal-primary); border-bottom-color: var(--teal-primary); font-weight: 600; }
+.tabCount {
+  background: var(--gray-200); color: var(--gray-700);
+  font-size: 11px; font-weight: 700; padding: 1px 7px;
+  border-radius: 10px; line-height: 1.5;
+}
+.tabActive .tabCount { background: #b2dfdb; color: var(--teal-primary); }
+
+.actionBtns {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.confirmBtn, .rejectBtn, .viewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.confirmBtn {
+  background: var(--teal-primary);
+  color: white;
+  padding: 6px 10px;
+}
+
+.rejectBtn {
+  background: var(--red-btn);
+  color: white;
+  padding: 6px 10px;
+}
+
+.viewBtn {
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 6px 10px;
+}
+
+.confirmBtn:hover, .rejectBtn:hover, .viewBtn:hover { opacity: 0.85; }
+
+.viewLink {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #e3f2fd; color: #1565c0;
+  padding: 6px 10px; border-radius: var(--radius-sm);
+  font-size: 12.5px; font-weight: 600; text-decoration: none;
+  transition: opacity 0.12s;
+}
+.viewLink:hover { opacity: 0.85; }
+
+.statusPending {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fff8e1;
+  color: #f57f17;
+}
+
+.statusRejected {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #ffebee;
+  color: #c62828;
+}
+
+.statusConfirmed {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.rejectionText { color: var(--red); font-style: italic; font-size: 13px; }
+.rejectCommentWrap { margin-top: 16px; }
+.rejectLabel { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; }
+.rejectTextarea, .richTextarea { width: 100%; padding: 10px 12px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); font-size: 13.5px; outline: none; resize: vertical; box-sizing: border-box; min-height: 80px; line-height: 1.5; font-family: inherit; }
+.rejectTextarea:focus, .richTextarea:focus { border-color: var(--teal-primary); }
+.cancelBtn {
+  padding: 8px 16px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm);
+  background: white; color: var(--gray-600); font-size: 13px; cursor: pointer;
+}
+.cancelBtn:hover { background: var(--gray-100); }

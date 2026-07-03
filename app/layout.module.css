@@ -1,0 +1,53 @@
+.appShell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebarWrapper {
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sidebarHidden {
+  width: 0 !important;
+}
+
+.mainArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--gray-50);
+}
+
+.content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+@media print {
+  .sidebarWrapper, .sidebarWrapper * { display: none !important; width: 0 !important; }
+  .mainArea > :first-child { display: none !important; }
+  .content { padding: 12px !important; overflow: visible !important; }
+}
+
+.mainArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--gray-50);
+}
+
+.content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+@media print {
+  .sidebarWrapper, .sidebarWrapper * { display: none !important; width: 0 !important; }
+  .mainArea > :first-child { display: none !important; }
+  .content { padding: 12px !important; overflow: visible !important; }
+}

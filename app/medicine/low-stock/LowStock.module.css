@@ -1,0 +1,35 @@
+.page { width: 100%; }
+
+.customPageHeader { margin-bottom: 0;
+   margin-bottom: 0;
+  padding: 4px 10px;
+   min-height: 38px; }
+
+.customHeaderAction { display: flex; align-items: center; gap: 8px; }
+
+.warnBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff3e0;
+  border: 1px solid #ffe0b2;
+  color: #e65100;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.warnIcon { font-size: 18px; }
+
+.tdLow { font-weight: 700; color: var(--red-btn); }
+
+.purchasePlanBtn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--teal-primary); color: white; border: none;
+  padding: 6px 14px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: opacity 0.12s;
+}
+.purchasePlanBtn:hover { opacity: 0.85; }
+.purchasePlanBtn:disabled { opacity: 0.4; cursor: not-allowed; }
