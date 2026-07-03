@@ -805,7 +805,7 @@ export const drugApi = createApi({
         return `/drug-purchases/low-stock${qs ? '?' + qs : ''}`;
       },
     }),
-    getExpiryAlerts: builder.query<LowStockItem[], void>({
+    getExpiryAlerts: builder.query<DrugPurchaseItem[], void>({
       query: () => '/drug-purchases/expiry-alert?days=30',
     }),
 

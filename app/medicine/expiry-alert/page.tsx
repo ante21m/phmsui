@@ -15,7 +15,7 @@ function daysLeft(expiryDate: string): number {
 
 export default function ExpiryAlertPage() {
   const { data: rawItems = [], isLoading } = useGetExpiryAlertsQuery();
-  const items = useMemo(() => (rawItems as DrugPurchaseItem[]).filter(i => i.qtyRemaining >= 0), [rawItems]);
+  const items = useMemo(() => rawItems.filter(i => i.qtyRemaining >= 0), [rawItems]);
 
   const columns = useMemo<SmartColumn<DrugPurchaseItem>[]>(
     () => [
