@@ -469,7 +469,7 @@ export default function PurchasedItemsPage() {
             <div className={styles.formField}>
               <label>Supplier</label>
               <div className={styles.supplierRow}>
-                <select value={supplierId ?? ''} onChange={(e) => setSupplierId(e.target.value || undefined)}>
+                <select value={supplierId ?? ''} onChange={(e) => setSupplierId(e.target.value || undefined)} aria-label="Supplier">
                   <option value="">-- Select Supplier --</option>
                   {(suppliers as Supplier[]).map(s => (
                     <option key={s.id} value={s.id}>{s.name}</option>
@@ -582,7 +582,7 @@ export default function PurchasedItemsPage() {
               <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
                   <h3>Add New Supplier</h3>
-                  <button className={styles.formCloseBtn} onClick={() => setSupplierFormOpen(false)}><MdClose /></button>
+                  <button className={styles.formCloseBtn} onClick={() => setSupplierFormOpen(false)} aria-label="Close"><MdClose /></button>
                 </div>
                 <div className={styles.modalBody}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -619,7 +619,7 @@ export default function PurchasedItemsPage() {
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
             <div className={styles.modalHeader}>
               <h3>Select Variants</h3>
-              <button className={styles.formCloseBtn} onClick={() => setVariantPicker(null)}><MdClose /></button>
+              <button className={styles.formCloseBtn} onClick={() => setVariantPicker(null)} aria-label="Close"><MdClose /></button>
             </div>
             <div className={styles.modalBody}>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>{items.find(x => x.id === variantPicker.itemId)?.name}</p>
@@ -660,7 +660,7 @@ export default function PurchasedItemsPage() {
               <div className={styles.tableControls}>
                 <div className={styles.showEntries}>
                   <label>Show</label>
-                  <select value={stockPerPage} onChange={(e) => { setStockPerPage(Number(e.target.value)); setStockPage(1); }}>
+                  <select value={stockPerPage} onChange={(e) => { setStockPerPage(Number(e.target.value)); setStockPage(1); }} aria-label="Show entries">
                     <option value={10}>10</option>
                     <option value={25}>25</option>
                     <option value={50}>50</option>
@@ -800,7 +800,7 @@ export default function PurchasedItemsPage() {
                             {item.purchaseItemId && stock ? (
                               <span className={styles.itemLabel}>{stockLabel(stock)} <span className={styles.batchLabel}>({stock.batchNo || 'N/A'})</span></span>
                             ) : (
-                              <select value={item.purchaseItemId || ''} onChange={(e) => updateDispatchItem(i, 'purchaseItemId', e.target.value)}>
+                              <select value={item.purchaseItemId || ''} onChange={(e) => updateDispatchItem(i, 'purchaseItemId', e.target.value)} aria-label="Stock item">
                                 <option value="">Select stock...</option>
                                 {visibleStocks.map((s) => (
                                   <option key={s.id} value={s.id}>
@@ -835,6 +835,7 @@ export default function PurchasedItemsPage() {
                   <select
                     value={dispatchedToUserId}
                     onChange={(e) => setDispatchedToUserId(e.target.value)}
+                    aria-label="Dispatched To"
                   >
                     <option value="">Select receiving user...</option>
                     {usersList.map(u => (
@@ -880,7 +881,7 @@ export default function PurchasedItemsPage() {
               <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.modalHeader}>
                   <h3>Dispatch Details</h3>
-                  <button className={styles.formCloseBtn} onClick={() => setViewingDispatch(null)}><MdClose /></button>
+                  <button className={styles.formCloseBtn} onClick={() => setViewingDispatch(null)} aria-label="Close"><MdClose /></button>
                 </div>
                 <div className={styles.modalBody}>
                   <div className={styles.detailGrid}>

@@ -116,7 +116,7 @@ export default function ItemVariantsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, padding: 16 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <label style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--gray-600)', textTransform: 'uppercase' }}>Item <span style={{ color: 'var(--red-btn)' }}>*</span></label>
-              <select value={form.itemId} onChange={e => setForm(p => ({ ...p, itemId: e.target.value }))} style={{ padding: '8px 10px', border: '1px solid var(--gray-300)', borderRadius: 'var(--radius-sm)', fontSize: 13.5, outline: 'none', background: 'white' }}>
+              <select value={form.itemId} onChange={e => setForm(p => ({ ...p, itemId: e.target.value }))} style={{ padding: '8px 10px', border: '1px solid var(--gray-300)', borderRadius: 'var(--radius-sm)', fontSize: 13.5, outline: 'none', background: 'white' }} aria-label="Item">
                 <option value="">Select item...</option>
                 {items?.map(item => (
                   <option key={item.id} value={item.id}>{item.name} ({item.itemCode})</option>
@@ -141,7 +141,7 @@ export default function ItemVariantsPage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <label style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--gray-600)', textTransform: 'uppercase' }}>Active</label>
-              <select value={form.isActive ? 'true' : 'false'} onChange={e => setForm(p => ({ ...p, isActive: e.target.value === 'true' }))} style={{ padding: '8px 10px', border: '1px solid var(--gray-300)', borderRadius: 'var(--radius-sm)', fontSize: 13.5, outline: 'none', background: 'white' }}>
+              <select value={form.isActive ? 'true' : 'false'} onChange={e => setForm(p => ({ ...p, isActive: e.target.value === 'true' }))} style={{ padding: '8px 10px', border: '1px solid var(--gray-300)', borderRadius: 'var(--radius-sm)', fontSize: 13.5, outline: 'none', background: 'white' }} aria-label="Active">
                 <option value="true">Yes</option>
                 <option value="false">No</option>
               </select>

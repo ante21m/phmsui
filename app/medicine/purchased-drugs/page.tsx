@@ -443,7 +443,7 @@ export default function PurchasedDrugsPage() {
             <div className={styles.formField}>
               <label>Supplier</label>
               <div className={styles.supplierRow}>
-                <select value={supplierId ?? ''} onChange={(e) => setSupplierId(e.target.value || undefined)}>
+                <select value={supplierId ?? ''} onChange={(e) => setSupplierId(e.target.value || undefined)} aria-label="Supplier">
                   <option value="">-- Select Supplier --</option>
                   {(suppliers as Supplier[]).map(s => (
                     <option key={s.id} value={s.id}>{s.name}</option>
@@ -600,7 +600,7 @@ export default function PurchasedDrugsPage() {
               <div className={styles.tableControls}>
                 <div className={styles.showEntries}>
                   <label>Show</label>
-                  <select value={stockPerPage} onChange={(e) => { setStockPerPage(Number(e.target.value)); setStockPage(1); }}>
+                  <select value={stockPerPage} onChange={(e) => { setStockPerPage(Number(e.target.value)); setStockPage(1); }} aria-label="Show entries">
                     <option value={10}>10</option>
                     <option value={25}>25</option>
                     <option value={50}>50</option>
@@ -740,7 +740,7 @@ export default function PurchasedDrugsPage() {
                             {item.purchaseItemId && stock ? (
                               <span className={styles.drugLabel}>{stockLabel(stock)} <span className={styles.batchLabel}>({stock.batchNo || 'N/A'})</span></span>
                             ) : (
-                              <select value={item.purchaseItemId || ''} onChange={(e) => updateDispatchItem(i, 'purchaseItemId', e.target.value)}>
+                              <select value={item.purchaseItemId || ''} onChange={(e) => updateDispatchItem(i, 'purchaseItemId', e.target.value)} aria-label="Stock item">
                                 <option value="">Select stock...</option>
                                 {visibleStocks.map((s) => (
                                   <option key={s.id} value={s.id}>
@@ -778,6 +778,7 @@ export default function PurchasedDrugsPage() {
                   <select
                     value={dispatchedToUserId}
                     onChange={(e) => setDispatchedToUserId(e.target.value)}
+                    aria-label="Dispatched To"
                   >
                     <option value="">Select receiving user...</option>
                     {usersList.map(u => (

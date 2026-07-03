@@ -265,7 +265,7 @@ export default function WorkflowManagementPage() {
                     </div>
                     <div className={styles.formGroup} style={{ flex: 1, margin: 0 }}>
                       <label>Role <span style={{ color: 'red' }}>*</span></label>
-                      <select value={step.role} onChange={e => updateStepField(idx, 'role', e.target.value)} style={{ fontSize: 12, padding: '6px 8px' }}>
+                      <select value={step.role} onChange={e => updateStepField(idx, 'role', e.target.value)} style={{ fontSize: 12, padding: '6px 8px' }} aria-label="Role">
                         <option value="">Select role</option>
                         {ROLE_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
                       </select>

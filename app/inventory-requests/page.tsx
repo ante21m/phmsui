@@ -331,7 +331,7 @@ export default function InventoryRequestsPage() {
             <div className={styles.formGrid}>
               <div className={styles.formGroup}>
                 <label>Department <span className={styles.required}>*</span></label>
-                <select value={form.departmentId} onChange={e => setForm(p => ({ ...p, departmentId: e.target.value }))}>
+                <select value={form.departmentId} onChange={e => setForm(p => ({ ...p, departmentId: e.target.value }))} aria-label="Department">
                   <option value="">Select department</option>
                   {departments.filter(d => d.isActive).map(d => (
                     <option key={d.id} value={d.id}>{d.name}</option>
@@ -340,7 +340,7 @@ export default function InventoryRequestsPage() {
               </div>
               <div className={styles.formGroup}>
                 <label>Warehouse <span className={styles.required}>*</span></label>
-                <select value={form.warehouseId} onChange={e => setForm(p => ({ ...p, warehouseId: e.target.value }))}>
+                <select value={form.warehouseId} onChange={e => setForm(p => ({ ...p, warehouseId: e.target.value }))} aria-label="Warehouse">
                   <option value="">Select warehouse</option>
                   {stores.filter(s => s.isActive).map(s => (
                     <option key={s.id} value={s.id}>{s.name}</option>
@@ -349,7 +349,7 @@ export default function InventoryRequestsPage() {
               </div>
               <div className={styles.formGroup}>
                 <label>Status</label>
-                <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))} disabled={!editing}>
+                <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))} disabled={!editing} aria-label="Status">
                   <option value="PENDING">Pending</option>
                   <option value="APPROVED">Approved</option>
                   <option value="REJECTED">Rejected</option>
@@ -381,7 +381,7 @@ export default function InventoryRequestsPage() {
                   {form.items.map((item, i) => (
                     <tr key={item.id}>
                       <td>
-                        <select value={item.variantId} onChange={e => updateItem(i, 'variantId', e.target.value)}>
+                        <select value={item.variantId} onChange={e => updateItem(i, 'variantId', e.target.value)} aria-label="Item">
                           <option value="">Select item</option>
                           {itemOpts.map((it, idx) => (
                             <option key={`${it.value}-${idx}`} value={it.value}>{it.label}</option>

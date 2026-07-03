@@ -239,7 +239,7 @@ export default function SmartTable<T>({
           {withPagination && !hideEntries && (
             <div className={styles.showEntries}>
               <label>Show</label>
-              <select value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}>
+              <select value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }} aria-label="Show entries">
                 {pageSizeOptions.map((n) => (
                   <option key={n} value={n}>{n}</option>
                 ))}

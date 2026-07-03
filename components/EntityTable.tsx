@@ -147,6 +147,7 @@ export function EntityTable<T>({
           <select
             value={pageSize}
             onChange={(e) => { onPageSizeChange(Number(e.target.value)); onPageChange(1); }}
+            aria-label="Show entries"
             style={{
               padding: '4px 8px',
               border: '1px solid var(--gray-300, #cbd5d2)',

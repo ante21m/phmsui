@@ -345,8 +345,8 @@ function DrugSaleForm() {
           <input type="text" value={form.fullName} onChange={(e) => setForm(p => ({ ...p, fullName: e.target.value }))} placeholder="Patient name" />
         </div>
         <div className={styles.formField}>
-          <label>Sex</label>
-          <select value={form.sex} onChange={(e) => setForm(p => ({ ...p, sex: e.target.value }))}>
+          <label htmlFor="sale-sex">Sex</label>
+          <select id="sale-sex" value={form.sex} onChange={(e) => setForm(p => ({ ...p, sex: e.target.value }))}>
             <option value="">Select...</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
@@ -357,8 +357,8 @@ function DrugSaleForm() {
           <input type="text" value={form.age} onChange={(e) => setForm(p => ({ ...p, age: e.target.value }))} placeholder="Age" />
         </div>
         <div className={styles.formField}>
-          <label>Payer Type</label>
-          <select value={form.payerType} onChange={(e) => setForm(p => ({ ...p, payerType: e.target.value }))}>
+          <label htmlFor="sale-payer-type">Payer Type</label>
+          <select id="sale-payer-type" value={form.payerType} onChange={(e) => setForm(p => ({ ...p, payerType: e.target.value }))}>
             <option value="patient">Patient</option>
             <option value="insurance">Insurance</option>
             <option value="sponsor">Sponsor</option>
@@ -366,8 +366,8 @@ function DrugSaleForm() {
           </select>
         </div>
         <div className={styles.formField}>
-          <label>Payment Method</label>
-          <select value={form.paymentMethod} onChange={(e) => setForm(p => ({ ...p, paymentMethod: e.target.value }))}>
+          <label htmlFor="sale-payment-method">Payment Method</label>
+          <select id="sale-payment-method" value={form.paymentMethod} onChange={(e) => setForm(p => ({ ...p, paymentMethod: e.target.value }))}>
             <option value="cash">Cash</option>
             <option value="card">Card</option>
             <option value="insurance">Insurance</option>
@@ -704,8 +704,8 @@ function NonDrugSaleTab() {
           <input type="text" value={form.fullName} onChange={(e) => setForm(p => ({ ...p, fullName: e.target.value }))} placeholder="Patient name" />
         </div>
         <div className={styles.formField}>
-          <label>Sex</label>
-          <select value={form.sex} onChange={(e) => setForm(p => ({ ...p, sex: e.target.value }))}>
+          <label htmlFor="nonsale-sex">Sex</label>
+          <select id="nonsale-sex" value={form.sex} onChange={(e) => setForm(p => ({ ...p, sex: e.target.value }))}>
             <option value="">Select...</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
@@ -716,8 +716,8 @@ function NonDrugSaleTab() {
           <input type="text" value={form.age} onChange={(e) => setForm(p => ({ ...p, age: e.target.value }))} placeholder="Age" />
         </div>
         <div className={styles.formField}>
-          <label>Payer Type</label>
-          <select value={form.payerType} onChange={(e) => setForm(p => ({ ...p, payerType: e.target.value }))}>
+          <label htmlFor="nonsale-payer-type">Payer Type</label>
+          <select id="nonsale-payer-type" value={form.payerType} onChange={(e) => setForm(p => ({ ...p, payerType: e.target.value }))}>
             <option value="patient">Patient</option>
             <option value="insurance">Insurance</option>
             <option value="sponsor">Sponsor</option>
@@ -725,8 +725,8 @@ function NonDrugSaleTab() {
           </select>
         </div>
         <div className={styles.formField}>
-          <label>Payment Method</label>
-          <select value={form.paymentMethod} onChange={(e) => setForm(p => ({ ...p, paymentMethod: e.target.value }))}>
+          <label htmlFor="nonsale-payment-method">Payment Method</label>
+          <select id="nonsale-payment-method" value={form.paymentMethod} onChange={(e) => setForm(p => ({ ...p, paymentMethod: e.target.value }))}>
             <option value="cash">Cash</option>
             <option value="card">Card</option>
             <option value="insurance">Insurance</option>

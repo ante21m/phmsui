@@ -122,7 +122,7 @@ export default function PharmacyRequestsPage() {
       <div className={styles.formBar}>
         <div className={styles.formGroup}>
           <label>Store <span className={styles.required}>*</span></label>
-          <select value={cart.storeId} onChange={e => dispatch(setStore(e.target.value))}>
+          <select value={cart.storeId} onChange={e => dispatch(setStore(e.target.value))} aria-label="Store">
             <option value="">Select Store</option>
             {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
