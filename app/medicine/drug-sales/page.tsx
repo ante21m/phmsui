@@ -727,9 +727,11 @@ function NonDrugSaleTab() {
         <div className={styles.formField}>
           <label htmlFor="nonsale-payment-method">Payment Method</label>
           <select id="nonsale-payment-method" value={form.paymentMethod} onChange={(e) => setForm(p => ({ ...p, paymentMethod: e.target.value }))}>
-            <option value="cash">Cash</option>
+            <option value="cash">cash</option>
+            <option value="mobile">Mobile</option>
             <option value="card">Card</option>
-            <option value="insurance">Insurance</option>
+            <option value="credit">Credit</option>
+             <option value="bank">Bank </option>
             <option value="other">Other</option>
           </select>
         </div>
