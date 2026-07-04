@@ -35,7 +35,7 @@ export default function DispatchDetailPage() {
 
   const enrichedItems = useMemo(() => (dispatch?.items || []).map((item: DrugDispatchItem) => {
     const si = stockMap[item.purchaseItemId];
-    return { ...item, _drug: si?.drug?.genericName ? `${si.drug.genericName} - ${si.drug.strength} (${si.drug.dosageForm})` : si?.drugName || `Item #${item.purchaseItemId}`, _batch: si?.batchNo || '—', _stock: si };
+    return { ...item, _drug: si?.drug?.genericName ? `${si.drug.genericName} ${si.drug.dosageForm} - ${si.drug.strength}` : si?.drugName || `Item #${item.purchaseItemId}`, _batch: si?.batchNo || '—', _stock: si };
   }), [dispatch, stockMap]);
 
   const handleConfirm = async () => {

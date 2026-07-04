@@ -93,7 +93,7 @@ export default function PurchasedDrugsPage() {
 
   const stockLabel = (s: DrugPurchaseItem) => {
     const dm = drugMap[s.drugId ?? ''];
-    return dm ? `${dm.genericName} - ${dm.strength} (${dm.dosageForm})` : s.drugName;
+    return dm ? `${dm.genericName} ${dm.dosageForm} - ${dm.strength}` : s.drugName;
   };
 
   const [editStockId, setEditStockId] = useState<string | null>(null);
@@ -479,7 +479,7 @@ export default function PurchasedDrugsPage() {
                       <div className={styles.searchSelectWrap}>
                         <input type="text"
                           ref={el => { inputRefs.current[i] = el; }}
-                          value={drugSearchActive === i ? drugSearch : (() => { const d = drugs.find(x => x.id === item.drugId); return d ? `${d.genericName} - ${d.strength} (${d.dosageForm})` : ''; })()}
+                            value={drugSearchActive === i ? drugSearch : (() => { const d = drugs.find(x => x.id === item.drugId); return d ? `${d.genericName} ${d.dosageForm} - ${d.strength}` : ''; })()}
                           onChange={(e) => { setDrugSearch(e.target.value); setDrugSearchActive(i); }}
                           onFocus={(e) => {
                             setDrugSearch(''); setDrugSearchActive(i);
@@ -499,7 +499,7 @@ export default function PurchasedDrugsPage() {
                                 .map(d => (
                                   <div key={d.id} className={`${styles.searchOption} ${item.drugId === d.id ? styles.searchOptionActive : ''}`}
                                     onClick={() => { updateItem(i, 'drugId', d.id); setDrugSearchActive(-1); setDropdownPos(null); setDrugSearch(''); }}>
-                                    {d.genericName} - {d.strength} ({d.dosageForm})
+                                    {d.genericName} {d.dosageForm} - {d.strength}
                                   </div>
                                 ))}
                             </div>
@@ -640,7 +640,7 @@ export default function PurchasedDrugsPage() {
                         <td className={styles.checkCol}>
                           <input type="checkbox" checked={selectedStockIds.has(s.id)} onChange={() => toggleStockSelect(s.id)} />
                         </td>
-                        <td>{(() => { const dm = drugMap[s.drugId ?? '']; return dm ? `${dm.genericName} - ${dm.strength} (${dm.dosageForm})` : s.drugName; })()}</td>
+                        <td>{(() => { const dm = drugMap[s.drugId ?? '']; return dm ? `${dm.genericName} ${dm.dosageForm} - ${dm.strength}` : s.drugName; })()}</td>
                         {editStockId === s.id ? (
                           <>
                             <td><input type="text" value={editStockForm.batchNo} onChange={(e) => setEditStockForm(p => ({ ...p, batchNo: e.target.value }))} /></td>

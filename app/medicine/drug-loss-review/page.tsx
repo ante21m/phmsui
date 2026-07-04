@@ -40,7 +40,7 @@ export default function DrugLossReviewPage() {
       const item = d.items?.find((i: any) => i.id === dispatchDetailId);
       if (item) {
         const stock = stockMap[item.purchaseItemId];
-        return stock?.drug?.genericName ? `${stock.drug.genericName} - ${stock.drug.strength} (${stock.drug.dosageForm})` : stock?.drugName || `Item #${item.purchaseItemId}`;
+        return stock?.drug?.genericName ? `${stock.drug.genericName} ${stock.drug.dosageForm} - ${stock.drug.strength}` : stock?.drugName || `Item #${item.purchaseItemId}`;
       }
     }
     return '—';
@@ -48,7 +48,7 @@ export default function DrugLossReviewPage() {
 
   const stockLabel = (s: DrugPurchaseItem) => {
     const dm = drugMap[s.drugId ?? ''];
-    return dm ? `${dm.genericName} - ${dm.strength} (${dm.dosageForm})` : s.drugName;
+    return dm ? `${dm.genericName} ${dm.dosageForm} - ${dm.strength}` : s.drugName;
   };
 
   const dispatchForLoss = (loss: DrugLoss): DrugDispatch | null => {

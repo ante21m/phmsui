@@ -38,7 +38,7 @@ export default function DrugLossesPage() {
       for (const item of d.items || []) {
         const stock = stockMap[item.purchaseItemId];
         const label = stock?.drug?.genericName
-          ? `${stock.drug.genericName} - ${stock.drug.strength} (${stock.drug.dosageForm})`
+          ? `${stock.drug.genericName} ${stock.drug.dosageForm} - ${stock.drug.strength}`
           : stock?.drugName || `Item #${item.purchaseItemId}`;
         opts.push({ value: String(item.id), label });
       }
@@ -153,7 +153,7 @@ export default function DrugLossesPage() {
             const item = d.items?.find((i: any) => i.id === row.dispatchDetailId);
             if (item) {
               const stock = stockMap[item.purchaseItemId];
-              return stock?.drug?.genericName ? `${stock.drug.genericName} - ${stock.drug.strength} (${stock.drug.dosageForm})` : stock?.drugName || `Item #${item.purchaseItemId}`;
+              return stock?.drug?.genericName ? `${stock.drug.genericName} ${stock.drug.dosageForm} - ${stock.drug.strength}` : stock?.drugName || `Item #${item.purchaseItemId}`;
             }
           }
           return row.drug?.genericName || '—';

@@ -150,7 +150,7 @@ function DrugSaleForm() {
         const s = di.purchaseItem || stockById[di.purchaseItemId];
         if (!s) continue;
         const drugLabel = s.drug
-          ? `${s.drug.genericName} - ${s.drug.strength} (${s.drug.dosageForm})`
+          ? `${s.drug.genericName} ${s.drug.dosageForm} - ${s.drug.strength}`
           : s.drugName;
         if (di.currentQty <= 0) continue;
         options.push({ dispatchDetailId: di.id, drugLabel, salePrice: Number(s.salePrice), purchasePrice: Number(s.purchasePrice), qtyRemaining: di.currentQty });

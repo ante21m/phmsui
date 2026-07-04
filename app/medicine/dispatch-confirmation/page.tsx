@@ -33,7 +33,10 @@ export default function DispatchConfirmationPage() {
 
   const enrich = (list: DrugDispatch[]) => list.map(d => ({
     ...d,
-    _drugName: (d.items || []).map(it => it.purchaseItem?.drugName || '').filter(Boolean).join(', '),
+    _drugName: (d.items || []).map(it => {
+      const pi = it.purchaseItem;
+      return pi?.drug ? `${pi.drug.genericName} ${pi.drug.dosageForm} - ${pi.drug.strength}` : pi?.drugName || '';
+    }).filter(Boolean).join(', '),
     _qtyConfirmed: d.dispatchStatus === 'Confirmed' ? (d.items || []).reduce((s, it) => s + (it.currentQty ?? 0), 0) : null,
     _qtyRejected: d.dispatchStatus === 'Rejected' ? (d.items || []).reduce((s, it) => s + (it.quantity ?? 0) - (it.currentQty ?? 0), 0) : null,
   }));

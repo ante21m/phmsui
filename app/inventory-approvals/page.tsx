@@ -10,6 +10,7 @@ import {
   type InventoryApproval,
   type InventoryApprovalItem,
 } from '@/store/services/inventoryApprovalApi';
+import { useGetItemsQuery, useRejectInventoryRequestMutation, useApproveInventoryRequestMutation } from '@/store/services/drugApi';
 import styles from './InventoryApprovals.module.css';
 
 const statusLabel: Record<string, { label: string; className: string }> = {
@@ -18,47 +19,81 @@ const statusLabel: Record<string, { label: string; className: string }> = {
   REJECTED: { label: 'Rejected', className: 'statusRejected' },
 };
 
-const fmt = (n: any) => { const v = Number(n ?? 0); return isNaN(v) ? '0.00' : v.toFixed(2); };
-
 export default function InventoryApprovalsPage() {
   const { data: res, isLoading, refetch } = useGetInventoryApprovalsQuery({});
   const approvals = res?.data ?? [];
-  const [updateApproval] = useUpdateInventoryApprovalMutation();
+  const { data: items } = useGetItemsQuery();
+  const itemList = items ?? [];
 
-  const [approvingRow, setApprovingRow] = useState<InventoryApproval | null>(null);
+  const variantNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const item of itemList) {
+      for (const v of (item.variants ?? [])) {
+        map.set(v.id, v.variantName || item.name || v.id);
+      }
+      map.set(item.id, item.name || item.id);
+    }
+    return map;
+  }, [itemList]);
+
+  const getVariantName = (variantId: string) => variantNameMap.get(variantId) || variantId.slice(0, 8);
+
+  const [viewing, setViewing] = useState<InventoryApproval | null>(null);
+  const [viewAction, setViewAction] = useState<'none' | 'approve' | 'reject'>('none');
   const [approveComment, setApproveComment] = useState('');
   const [saving, setSaving] = useState(false);
-  const [viewing, setViewing] = useState<InventoryApproval | null>(null);
-  const [itemQty, setItemQty] = useState<Record<string, { approvedQuantity: number; issuedQuantity: number; confirmedQuantity: number }>>({});
+  const [rejectComment, setRejectComment] = useState('');
+  const [rejectSaving, setRejectSaving] = useState(false);
+  const [reject] = useRejectInventoryRequestMutation();
+  const [approve] = useApproveInventoryRequestMutation();
+  const [itemQty, setItemQty] = useState<Record<string, number>>({});
 
-  const openApprove = (row: InventoryApproval) => {
-    setApprovingRow(row);
-    setApproveComment('');
-    const qty: Record<string, { approvedQuantity: number; issuedQuantity: number; confirmedQuantity: number }> = {};
-    row.request?.items?.forEach(it => {
-      qty[it.id] = {
-        approvedQuantity: it.approvedQuantity || 0,
-        issuedQuantity: it.issuedQuantity || 0,
-        confirmedQuantity: it.confirmedQuantity || 0,
-      };
-    });
+  const initApprove = () => {
+    const qty: Record<string, number> = {};
+    viewing?.request?.items?.forEach(it => { qty[it.variantId] = it.approvedQuantity || it.requestedQuantity; });
     setItemQty(qty);
+    setApproveComment('');
+    setViewAction('approve');
   };
 
-  const closeApprove = () => { setApprovingRow(null); setApproveComment(''); setItemQty({}); };
-
   const handleApprove = async () => {
-    if (!approvingRow) return;
+    if (!viewing) return;
+    const reqId = viewing.requestId;
+    if (!reqId) { toast.error('No request ID'); return; }
     setSaving(true);
     try {
-      await updateApproval({ id: approvingRow.id, status: InventoryApprovalStatus.APPROVED, comment: approveComment || undefined }).unwrap();
+      const modifiedItems = (viewing.request?.items ?? []).map(it => ({
+        variantId: it.variantId,
+        approvedQuantity: itemQty[it.variantId] ?? it.approvedQuantity ?? it.requestedQuantity,
+      }));
+      await approve({ id: reqId, comment: approveComment || undefined, modifiedItems }).unwrap();
       toast.success('Approval confirmed');
-      closeApprove();
+      setViewing(null);
+      setViewAction('none');
       refetch();
     } catch (err: any) {
       toast.error(err?.data?.message || 'Failed to approve');
     } finally { setSaving(false); }
   };
+
+  const handleReject = async () => {
+    if (!viewing) return;
+    if (!rejectComment.trim()) { toast.error('Reason is required'); return; }
+    const reqId = viewing.requestId;
+    if (!reqId) { toast.error('No request ID'); return; }
+    setRejectSaving(true);
+    try {
+      await reject(reqId).unwrap();
+      toast.success('Request rejected');
+      setViewing(null);
+      setViewAction('none');
+      refetch();
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'Failed to reject');
+    } finally { setRejectSaving(false); }
+  };
+
+  const closeView = () => { setViewing(null); setViewAction('none'); setApproveComment(''); setRejectComment(''); };
 
   const columns = useMemo<SmartColumn<InventoryApproval>[]>(
     () => [
@@ -89,16 +124,11 @@ export default function InventoryApprovalsPage() {
       },
       {
         header: 'Actions',
-        width: '80px',
+        width: '60px',
         textAlign: 'right',
         render: (row) => (
           <span className={styles.actionBtns}>
-            <button className={styles.actionView} onClick={() => setViewing(row)} title="View"><MdVisibility size={14} /></button>
-            {row.status === 'PENDING' && (
-              <button className={styles.actionApprove} onClick={() => openApprove(row)} title="Approve">
-                <MdCheckCircle size={14} />
-              </button>
-            )}
+            <button className={styles.actionView} onClick={() => { setViewing(row); setViewAction('none'); }} title="View"><MdVisibility size={14} /></button>
           </span>
         ),
       },
@@ -117,87 +147,14 @@ export default function InventoryApprovalsPage() {
         withSearch withPagination withRowNumbers
         defaultPageSize={25}
         emptyMessage="No approvals found."
-        selectionBar={approvingRow ? (
-          <div className={styles.approvalBar}>
-            <div className={styles.approvalBarHeader}>
-              <span className={styles.approvalBarTitle}>Approve request from <strong>{(approvingRow.request?.requestedByUser
-  ? `${approvingRow.request.requestedByUser.firstName || ''} ${approvingRow.request.requestedByUser.fatherName || ''}`.trim()
-  : approvingRow.requestId?.slice(0, 8) || '')}</strong></span>
-              <button className={styles.approvalBarClose} onClick={closeApprove}><MdClose /></button>
-            </div>
-
-            <table className={styles.itemsTable}>
-              <thead>
-                <tr>
-                  <th>Variant</th>
-                  <th>Requested</th>
-                  <th>Approved</th>
-                  <th>Issued</th>
-                  <th>Confirmed</th>
-                  <th>Unit Cost</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(approvingRow.request?.items ?? []).map((it: InventoryApprovalItem) => (
-                  <tr key={it.id}>
-                    <td>{it.variantId?.slice(0, 8) || '-'}</td>
-                    <td>{it.requestedQuantity ?? 0}</td>
-                    <td>
-                      <input type="number" min={0}
-                        value={(itemQty[it.id]?.approvedQuantity ?? it.approvedQuantity ?? 0).toString()}
-                        onChange={e => setItemQty(prev => ({
-                          ...prev,
-                          [it.id]: { ...prev[it.id], approvedQuantity: Number(e.target.value) || 0 },
-                        }))}
-                        className={styles.qtyInput} />
-                    </td>
-                    <td>
-                      <input type="number" min={0}
-                        value={(itemQty[it.id]?.issuedQuantity ?? it.issuedQuantity ?? 0).toString()}
-                        onChange={e => setItemQty(prev => ({
-                          ...prev,
-                          [it.id]: { ...prev[it.id], issuedQuantity: Number(e.target.value) || 0 },
-                        }))}
-                        className={styles.qtyInput} />
-                    </td>
-                    <td>
-                      <input type="number" min={0}
-                        value={(itemQty[it.id]?.confirmedQuantity ?? it.confirmedQuantity ?? 0).toString()}
-                        onChange={e => setItemQty(prev => ({
-                          ...prev,
-                          [it.id]: { ...prev[it.id], confirmedQuantity: Number(e.target.value) || 0 },
-                        }))}
-                        className={styles.qtyInput} />
-                    </td>
-                    <td>{fmt(it.unitCost)}</td>
-                    <td>{fmt(it.totalCost)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <div className={styles.inlineField} style={{ marginTop: 10 }}>
-              <label>Comment (optional)</label>
-              <textarea value={approveComment} onChange={e => setApproveComment(e.target.value)}
-                placeholder="Add a comment" />
-            </div>
-            <div className={styles.inlineActions} style={{ marginTop: 8 }}>
-              <button className={styles.cancelBtn} onClick={closeApprove}>Cancel</button>
-              <button className={styles.approveBtn} onClick={handleApprove} disabled={saving}>
-                <MdCheckCircle /> {saving ? 'Approving...' : 'Approve'}
-              </button>
-            </div>
-          </div>
-        ) : undefined}
       />
 
       {viewing && (
-        <div className="modalOverlay" onClick={() => setViewing(null)}>
-          <div className="modalContent" onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalOverlay} onClick={closeView}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3>Approval Details</h3>
-              <button className={styles.modalCloseBtn} onClick={() => setViewing(null)}><MdClose /></button>
+              <button className={styles.modalCloseBtn} onClick={closeView}><MdClose /></button>
             </div>
             <div className={styles.modalBody}>
               <div className={styles.detailGrid}>
@@ -221,37 +178,96 @@ export default function InventoryApprovalsPage() {
               {(viewing.request?.items ?? []).length > 0 && (
                 <>
                   <h4 style={{ margin: '12px 0 6px', fontSize: 13, fontWeight: 700, color: 'var(--teal-dark)' }}>Items</h4>
-                  <table className={styles.itemsTable}>
-                    <thead>
-                      <tr>
-                        <th>Variant</th>
-                        <th>Requested</th>
-                        <th>Approved</th>
-                        <th>Issued</th>
-                        <th>Confirmed</th>
-                        <th>Unit Cost</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(viewing.request?.items ?? []).map((it: any) => (
-                        <tr key={it.id}>
-                    <td>{it.variant?.item?.name || it.variantId?.slice(0, 8) || '-'}</td>
-                          <td>{it.requestedQuantity ?? 0}</td>
-                          <td>{it.approvedQuantity ?? 0}</td>
-                          <td>{it.issuedQuantity ?? 0}</td>
-                          <td>{it.confirmedQuantity ?? 0}</td>
-                          <td>{fmt(it.unitCost)}</td>
-                          <td>{fmt(it.totalCost)}</td>
+                  {viewAction === 'approve' ? (
+                    <table className={styles.itemsTable}>
+                      <thead>
+                        <tr>
+                          <th>Item</th>
+                          <th>Requested</th>
+                          <th>Approved Qty</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {(viewing.request?.items ?? []).map((it: any) => (
+                          <tr key={it.id}>
+                            <td>{getVariantName(it.variantId)}</td>
+                            <td>{it.requestedQuantity ?? 0}</td>
+                            <td>
+                              <input type="number" min={0}
+                                value={(itemQty[it.variantId] ?? it.approvedQuantity ?? it.requestedQuantity ?? 0).toString()}
+                                onChange={e => setItemQty(prev => ({ ...prev, [it.variantId]: Number(e.target.value) || 0 }))}
+                                className={styles.qtyInput} />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <table className={styles.itemsTable}>
+                      <thead>
+                        <tr>
+                          <th>Item</th>
+                          <th>Requested</th>
+                          <th>Approved</th>
+                          <th>Remarks</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(viewing.request?.items ?? []).map((it: any) => (
+                          <tr key={it.id}>
+                            <td>{getVariantName(it.variantId)}</td>
+                            <td>{it.requestedQuantity ?? 0}</td>
+                            <td>{it.approvedQuantity ?? 0}</td>
+                            <td>{it.remarks || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </>
+              )}
+
+              {viewAction === 'approve' && (
+                <div style={{ marginTop: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 4, fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>Comment (optional)</label>
+                  <textarea value={approveComment} onChange={e => setApproveComment(e.target.value)}
+                    placeholder="Add a comment" style={{ width: '100%', boxSizing: 'border-box' }} />
+                </div>
+              )}
+              {viewAction === 'reject' && (
+                <div style={{ marginTop: 10 }}>
+                  <label style={{ display: 'block', marginBottom: 4, fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>Reason <span style={{ color: '#c62828' }}>*</span></label>
+                  <textarea value={rejectComment} onChange={e => setRejectComment(e.target.value)}
+                    placeholder="Reason for rejection (required)" style={{ width: '100%', boxSizing: 'border-box' }} />
+                </div>
               )}
             </div>
             <div className={styles.modalFooter}>
-              <button className={styles.cancelBtn} onClick={() => setViewing(null)}><MdClose /> Close</button>
+              {viewAction === 'none' && viewing.status === 'PENDING' && (
+                <>
+                  <button className={styles.rejectBtn} onClick={() => { setViewAction('reject'); setRejectComment(''); }}><MdClose /> Reject</button>
+                  <button className={styles.approveBtn} onClick={initApprove}><MdCheckCircle /> Approve</button>
+                </>
+              )}
+              {viewAction === 'approve' && (
+                <>
+                  <button className={styles.cancelBtn} onClick={() => setViewAction('none')}>Back</button>
+                  <button className={styles.approveBtn} onClick={handleApprove} disabled={saving}>
+                    <MdCheckCircle /> {saving ? 'Approving...' : 'Confirm Approve'}
+                  </button>
+                </>
+              )}
+              {viewAction === 'reject' && (
+                <>
+                  <button className={styles.cancelBtn} onClick={() => setViewAction('none')}>Back</button>
+                  <button className={styles.rejectBtn} onClick={handleReject} disabled={rejectSaving}>
+                    <MdClose /> {rejectSaving ? 'Rejecting...' : 'Confirm Reject'}
+                  </button>
+                </>
+              )}
+              {viewAction === 'none' && (
+                <button className={styles.cancelBtn} onClick={closeView}><MdClose /> Close</button>
+              )}
             </div>
           </div>
         </div>

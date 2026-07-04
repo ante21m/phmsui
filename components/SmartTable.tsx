@@ -193,6 +193,7 @@ export default function SmartTable<T>({
                   const v = row[col.accessor];
                   value = v != null ? String(v) : '—';
                 }
+                if (typeof value === 'number' && !isFinite(value)) value = '—';
                 return (
                   <td key={ci} style={{ textAlign: col.textAlign || 'left' }}>
                     {value}

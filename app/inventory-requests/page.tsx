@@ -16,6 +16,7 @@ import {
 } from '@/store/services/drugApi';
 import {
   useCreateInventoryApprovalMutation,
+  useGetInventoryApprovalsQuery,
   InventoryApprovalStatus,
 } from '@/store/services/inventoryApprovalApi';
 import styles from './InventoryRequests.module.css';
@@ -24,8 +25,6 @@ interface ItemRow {
   id: number;
   variantId: string;
   requestedQuantity: string;
-  unitCost: string;
-  totalCost: string;
   remarks: string;
 }
 
@@ -38,7 +37,7 @@ interface FormData {
 }
 
 let nextItemId = 1;
-const emptyItem = (): ItemRow => ({ id: nextItemId++, variantId: '', requestedQuantity: '0', unitCost: '', totalCost: '', remarks: '' });
+const emptyItem = (): ItemRow => ({ id: nextItemId++, variantId: '', requestedQuantity: '0', remarks: '' });
 
 const emptyForm = (): FormData => ({
   departmentId: '', warehouseId: '',
@@ -101,11 +100,14 @@ export default function InventoryRequestsPage() {
   const [remove] = useDeleteInventoryRequestMutation();
   const [createApproval] = useCreateInventoryApprovalMutation();
   const { data: currentUser } = useGetUserDetailQuery();
+  const { data: approvalsRes } = useGetInventoryApprovalsQuery({});
+  const existingApprovals = approvalsRes?.data ?? [];
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [bulkComment, setBulkComment] = useState('');
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [singleSubmittingId, setSingleSubmittingId] = useState<string | null>(null);
 
   const handleBulkSubmit = async () => {
     setBulkLoading(true);
@@ -166,7 +168,7 @@ export default function InventoryRequestsPage() {
       purpose: r.purpose || '',
       status: r.status,
       items: r.items.length > 0
-        ? r.items.map((i) => ({ id: nextItemId++, variantId: itemIdForVariant.get(i.variantId) || i.variantId, requestedQuantity: String(i.requestedQuantity), unitCost: i.unitCost != null ? String(i.unitCost) : '', totalCost: i.totalCost != null ? String(i.totalCost) : '', remarks: i.remarks || '' }))
+        ? r.items.map((i) => ({ id: nextItemId++, variantId: itemIdForVariant.get(i.variantId) || i.variantId, requestedQuantity: String(i.requestedQuantity), remarks: i.remarks || '' }))
         : [emptyItem()],
     });
     setFormOpen(true);
@@ -176,11 +178,6 @@ export default function InventoryRequestsPage() {
   const updateItem = (idx: number, field: keyof ItemRow, value: string) => {
     setForm(prev => {
       const items = prev.items.map((it, i) => i === idx ? { ...it, [field]: value } : it);
-      if (field === 'requestedQuantity' || field === 'unitCost') {
-        const qty = Number(items[idx].requestedQuantity) || 0;
-        const cost = Number(items[idx].unitCost) || 0;
-        items[idx] = { ...items[idx], totalCost: String((qty * cost).toFixed(2)) };
-      }
       return { ...prev, items };
     });
   };
@@ -190,8 +187,6 @@ export default function InventoryRequestsPage() {
     if (form.items.length <= 1) { toast.warning('At least one item is required'); return; }
     setForm(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }));
   };
-
-  const grandTotal = useMemo(() => form.items.reduce((sum, it) => sum + (Number(it.totalCost) || 0), 0), [form.items]);
 
   const handleSave = async () => {
     if (!form.departmentId.trim()) { toast.error('Department is required'); return; }
@@ -213,17 +208,17 @@ export default function InventoryRequestsPage() {
         toast.success('Request updated');
       } else {
         await create({
-          departmentId: form.departmentId || undefined,
-          warehouseId: form.warehouseId || undefined,
-          purpose: form.purpose || undefined,
+          departmentId: form.departmentId,
+          warehouseId: form.warehouseId,
+          purpose: form.purpose,
+          status: 'PENDING',
           items: form.items.map(i => ({
             variantId: variantIdForItem.get(i.variantId.trim()) || i.variantId.trim(),
             requestedQuantity: Number(i.requestedQuantity) || 1,
-            unitCost: i.unitCost ? Number(i.unitCost) : undefined,
-            totalCost: i.totalCost ? Number(i.totalCost) : undefined,
+            approvedQuantity: 0,
             remarks: i.remarks || undefined,
           })),
-        } as any).unwrap();
+        }).unwrap();
         toast.success('Request created');
       }
       closeForm();
@@ -240,6 +235,12 @@ export default function InventoryRequestsPage() {
   };
 
   const handleSubmitForApproval = async (id: string) => {
+    if (singleSubmittingId) return;
+    if (existingApprovals.some(a => a.requestId === id && a.status === InventoryApprovalStatus.PENDING)) {
+      toast.warning('Already requested, wait for approval');
+      return;
+    }
+    setSingleSubmittingId(id);
     try {
       await createApproval({
         requestId: id,
@@ -250,6 +251,8 @@ export default function InventoryRequestsPage() {
       refetch();
     } catch {
       toast.error('Failed to submit');
+    } finally {
+      setSingleSubmittingId(null);
     }
   };
 
@@ -302,7 +305,7 @@ export default function InventoryRequestsPage() {
         render: (row) => (
           <span className={styles.actionBtns}>
             {row.status === 'PENDING' ? (
-              <button className={styles.actionEdit} onClick={() => handleSubmitForApproval(row.id)} title="Submit for approval"><MdCheckCircle /></button>
+              <button className={styles.actionEdit} onClick={() => handleSubmitForApproval(row.id)} title="Submit for approval" disabled={singleSubmittingId === row.id}><MdCheckCircle /></button>
             ) : null}
             {row.status === 'PENDING' && (
               <>
@@ -314,7 +317,7 @@ export default function InventoryRequestsPage() {
         ),
       },
     ],
-    [selectedIds, allSelected, currentUser, departments, stores],
+    [selectedIds, allSelected, currentUser, departments, stores, singleSubmittingId, existingApprovals],
   );
 
   const pendingCount = all.filter(r => r.status === 'PENDING').length;
@@ -401,9 +404,6 @@ export default function InventoryRequestsPage() {
                   ))}
                 </tbody>
               </table>
-              <div className={styles.grandTotalRow}>
-                Grand Total: <strong>{grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-              </div>
             </div>
           </div>
           <div className={styles.inlineFormActions}>

@@ -313,12 +313,11 @@ export interface InventoryRequest {
 }
 
 export interface CreateInventoryRequestDto {
-  departmentId?: string;
-  projectId?: string;
-  warehouseId?: string;
-  purpose?: string;
-  status?: string;
-  items: { variantId: string; requestedQuantity: number; approvedQuantity?: number; issuedQuantity?: number; confirmedQuantity?: number; unitCost?: number; totalCost?: number; remarks?: string }[];
+  departmentId: string;
+  warehouseId: string;
+  purpose: string;
+  status: string;
+  items: { variantId: string; requestedQuantity: number; approvedQuantity: number; remarks?: string }[];
 }
 
 export interface UpdateInventoryRequestDto {
@@ -934,6 +933,14 @@ export const drugApi = createApi({
       query: (id) => ({ url: `/inventory-requests/${id}`, method: 'DELETE' }),
       invalidatesTags: ['InventoryRequest'],
     }),
+    rejectInventoryRequest: builder.mutation<void, string>({
+      query: (id) => ({ url: `/inventory-requests/${id}/reject`, method: 'POST' }),
+      invalidatesTags: ['InventoryRequest'],
+    }),
+    approveInventoryRequest: builder.mutation<void, { id: string; comment?: string; modifiedItems: { variantId: string; approvedQuantity: number }[] }>({
+      query: ({ id, ...body }) => ({ url: `/inventory-requests/${id}/approve`, method: 'POST', body }),
+      invalidatesTags: ['InventoryRequest'],
+    }),
 
     // ─── Departments ───
     getDepartments: builder.query<Department[], void>({
@@ -1230,4 +1237,6 @@ export const {
   useGetIncomeSummaryReportQuery,
   useGetProfitSummaryReportQuery,
   useGetSoldItemCountsReportQuery,
+  useRejectInventoryRequestMutation,
+  useApproveInventoryRequestMutation,
 } = drugApi;
