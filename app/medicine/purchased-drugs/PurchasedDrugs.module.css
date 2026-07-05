@@ -10,7 +10,10 @@ min-height: 38px; }
 .pageTitle {
   font-size: 17px; font-weight: 600; color: white;
   background: var(--teal-primary); margin: 0;
-  padding: 10px 16px;
+  padding: 2px 8px;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
@@ -69,9 +72,12 @@ min-height: 38px; }
   border: 1px solid var(--gray-200);
   border-top: none;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-  padding: 24px;
+  padding: 12px 10px;
   box-shadow: var(--shadow-sm);
   min-height: 300px;
+}
+.tabContent:has(.registerTable) {
+  padding: 12px 0;
 }
 
 /* Form Header */
@@ -113,203 +119,38 @@ min-height: 38px; }
   box-shadow: 0 0 0 2px rgba(0,137,123,0.12);
 }
 
-/* Stock Table Controls */
-.tableControls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.showEntries {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
-  color: var(--gray-700);
-}
-
-.showEntries select {
-  padding: 4px 8px;
-  border: 1px solid var(--gray-300);
-  border-radius: var(--radius-sm);
+.formField input:hover,
+.formField select:hover {
   background: white;
-  color: var(--gray-700);
-  cursor: pointer;
 }
 
-.searchBox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
-  color: var(--gray-700);
-}
-
-.searchInputWrap {
-  position: relative;
-}
-
-.searchIcon {
-  position: absolute;
-  left: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--gray-400);
-  font-size: 16px;
-  pointer-events: none;
-}
-
-.searchInputWrap input {
-  padding: 6px 10px 6px 28px;
-  border: 1px solid var(--gray-300);
-  border-radius: var(--radius-sm);
-  outline: none;
-  width: 220px;
-  transition: border-color 0.15s;
-}
-
-.searchInputWrap input:focus {
-  border-color: var(--teal-primary);
-}
-
-/* Pagination */
-.paginationBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 14px;
+.page input:not([type="checkbox"]):not([type="radio"]):hover,
+.page select:hover {
   background: white;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  color: var(--gray-600);
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
-.paginationInfo {
-  color: var(--gray-500);
-  font-size: 12.5px;
-}
-
-.paginationControls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.pageBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-sm);
+/* Keep register form cells white on hover — prevents SmartTable tr:hover (#e8f5e9) from showing through Mantine wrapper divs */
+.registerTable tbody tr:hover td {
   background: white;
-  color: var(--gray-700);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.12s;
-  user-select: none;
 }
-
-.pageBtn:hover:not(:disabled):not(.pageBtnActive) {
-  background: var(--gray-100);
-  border-color: var(--gray-300);
-}
-
-.pageBtn:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.pageBtnActive {
-  background: var(--teal-primary);
-  border-color: var(--teal-primary);
-  color: white;
-  font-weight: 600;
-}
-
-/* Items Table */
-.itemsTableWrap {
-  overflow-x: auto;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-md);
-  margin-bottom: 12px;
-}
-
-.itemsTable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  min-width: 800px;
-}
-
-.itemsTable thead tr {
-  background: var(--gray-100);
-  border-bottom: 2px solid var(--gray-200);
-}
-
-.itemsTable th {
-  padding: 10px 12px;
-  text-align: left;
-  font-weight: 600;
-  color: var(--gray-700);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.thSortable {
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.1s;
-}
-
-.thSortable:hover {
-  background: var(--gray-200);
-}
-
-.thInner {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 4px;
-}
-
-.sortIcon {
-  flex-shrink: 0;
-  font-size: 16px;
-  color: var(--gray-400);
-}
-
-.itemsTable td {
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.itemsTable td input,
-.itemsTable td select {
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-sm);
-  outline: none;
-  font-size: 13px;
+.registerTable thead th {
   background: white;
-  transition: border-color 0.15s;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+.registerTable tbody td {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+.registerTable thead th:last-child,
+.registerTable tbody td:last-child {
+  text-align: right;
+}
+.registerTable tbody td:last-child .rowDeleteBtn {
+  margin-left: auto;
 }
 
-.itemsTable td input:focus,
-.itemsTable td select:focus {
-  border-color: var(--teal-primary);
-}
+
 
 .drugCell { min-width: 260px; position: relative; }
 
@@ -444,6 +285,10 @@ min-height: 38px; }
   font-size: 13.5px;
   background: white;
 }
+.dispatchDetails .formField input:hover,
+.dispatchDetails .formField select:hover {
+  background: white;
+}
 
 .saveWrap { display: flex; justify-content: center; padding-top: 8px; }
 
@@ -463,63 +308,6 @@ min-height: 38px; }
   box-shadow: var(--shadow-sm);
 }
 .saveBtn:hover { background: var(--green-hover); box-shadow: var(--shadow-md); }
-
-/* Stocks / Dispatched Table */
-.tableWrap {
-  overflow-x: auto;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-md);
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13.5px;
-  min-width: 600px;
-}
-
-.table thead tr {
-  background: var(--gray-100);
-  border-bottom: 2px solid var(--gray-200);
-}
-
-.table th {
-  padding: 10px 14px;
-  text-align: left;
-  font-weight: 600;
-  color: var(--gray-700);
-  font-size: 13px;
-}
-
-.rowEven { background: white; }
-.rowOdd { background: #f7faf9; }
-.table tbody tr:hover { background: #e8f5e9; }
-
-.table td {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--gray-200);
-  color: var(--gray-800);
-}
-
-.tdNum { text-align: center; font-weight: 600; color: var(--gray-600); width: 50px; }
-
-.loadingCell, .emptyCell {
-  text-align: center;
-  padding: 40px;
-  color: var(--gray-400);
-}
-
-.spinner {
-  width: 26px;
-  height: 26px;
-  border: 3px solid var(--gray-200);
-  border-top-color: var(--teal-primary);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  margin: 0 auto 10px;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* Dispatch Form */
 .subTitle {
@@ -554,6 +342,10 @@ min-height: 38px; }
 .formGroup select:focus {
   border-color: var(--teal-primary);
   box-shadow: 0 0 0 2px rgba(0,137,123,0.12);
+}
+.formGroup input:hover,
+.formGroup select:hover {
+  background: white;
 }
 
 .req { color: var(--red-btn); }

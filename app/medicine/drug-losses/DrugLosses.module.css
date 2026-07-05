@@ -3,7 +3,7 @@
 .pageTitle {
   display: flex; align-items: center; justify-content: space-between;
   background: var(--teal-primary); color: white;
-  padding: 10px 16px; margin: 0;
+  padding: 2px 8px; min-height: 30px; margin: 0;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 .pageTitle h2 { margin: 0; font-size: 17px; font-weight: 600; }

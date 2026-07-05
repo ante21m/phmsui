@@ -1,6 +1,6 @@
 .page { width: 100%; }
 .customPageHeader { margin-bottom: 0;
-padding: 4px 10px; min-height: 38px; }
+padding: 2px 8px; min-height: 30px; }
 
 .pageTitle {
   font-size: 17px; font-weight: 600; color: white; margin: 0 0 14px;

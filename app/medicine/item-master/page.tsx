@@ -2,7 +2,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { MdAdd, MdEdit, MdDelete, MdClose, MdSave } from 'react-icons/md';
-import { EntityForm, type FieldConfig, SmartTable, type SmartColumn } from '@/components';
+import { EntityForm, type FieldConfig, SmartTable, type SmartColumn, TextField } from '@/components';
 import {
   useGetItemsQuery,
   useAddItemMutation,
@@ -105,10 +105,10 @@ export default function ItemMasterPage() {
                     {v.attributes.map((a, ai) => (
                       <tr key={ai}>
                         <td style={{ padding: '2px 4px' }}>
-                          <input type="text" value={a.key} onChange={e => updateAttribute(vi, ai, 'key', e.target.value)} placeholder="e.g. color" style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--gray-200)', borderRadius: 4, background: 'white', fontSize: 14 }} />
+                          <TextField value={a.key} onChange={e => updateAttribute(vi, ai, 'key', e.target.value)} placeholder="e.g. color" />
                         </td>
                         <td style={{ padding: '2px 4px' }}>
-                          <input type="text" value={a.value} onChange={e => updateAttribute(vi, ai, 'value', e.target.value)} placeholder="e.g. red" style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--gray-200)', borderRadius: 4, background: 'white', fontSize: 14 }} />
+                          <TextField value={a.value} onChange={e => updateAttribute(vi, ai, 'value', e.target.value)} placeholder="e.g. red" />
                         </td>
                         <td style={{ padding: '2px', textAlign: 'center' }}>
                           <button type="button" onClick={() => removeAttribute(vi, ai)} title="Remove property" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red-btn, #e74c3c)', fontSize: 14 }}><MdDelete /></button>
@@ -118,9 +118,9 @@ export default function ItemMasterPage() {
                   </tbody>
                 </table>
                 <button type="button" onClick={() => addAttribute(vi)} className={styles.propAddBtn}><MdAdd /> Add Property</button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--gray-600)', whiteSpace: 'nowrap' }}>Variant Name</span>
-                  <input type="text" value={v.variantName} onChange={e => updateVariantField(vi, e.target.value)} placeholder="Auto-generated from item name + properties" style={{ flex: 1, padding: '6px 10px', border: '1px solid var(--gray-200)', borderRadius: 4, background: 'white', fontSize: 14 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--gray-600)', whiteSpace: 'nowrap' }}>Variant Name</span>
+                    <TextField value={v.variantName} onChange={e => updateVariantField(vi, e.target.value)} placeholder="Auto-generated from item name + properties" />
                   <button type="button" onClick={() => removeVariant(vi)} title="Remove variant" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red-btn, #e74c3c)', fontSize: 16 }}><MdDelete /></button>
                 </div>
               </div>

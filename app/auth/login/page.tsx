@@ -3,6 +3,7 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useLoginMutation } from '@/store/services/drugApi';
+import { TextField } from '@/components';
 import styles from './Login.module.css';
 
 export default function LoginPage() {
@@ -43,12 +44,10 @@ export default function LoginPage() {
         <h2 className={styles.title}>Pharmacy Management</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.field}>
-            <label>Username</label>
-            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter username" autoFocus />
+            <TextField label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter username" autoFocus />
           </div>
           <div className={styles.field}>
-            <label>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password" />
+            <TextField label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password" />
           </div>
           <button type="submit" className={styles.loginBtn} disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}

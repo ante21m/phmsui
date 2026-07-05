@@ -93,6 +93,7 @@ export interface DrugPurchase {
 export interface CreateDrugPurchaseItem {
   drugId?: string;
   drugName: string;
+  uom: string;
   quantity: number;
   purchasePrice: number;
   salePrice: number;

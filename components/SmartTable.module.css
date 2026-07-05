@@ -95,7 +95,7 @@
 }
 
 .th {
-  padding: 11px 14px;
+  padding: 11px 20px;
   text-align: left;
   font-weight: 600;
   color: var(--gray-700);
@@ -141,7 +141,7 @@
 }
 
 .table td {
-  padding: 10px 14px;
+  padding: 10px 20px;
   border-bottom: 1px solid var(--gray-200);
   color: var(--gray-800);
 }
@@ -186,9 +186,10 @@
   justify-content: space-between;
   background: var(--teal-primary);
   color: white;
-  padding: 14px 20px;
+  padding: 2px 8px;
+  min-height: 30px;
   border-radius: var(--radius-lg);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   box-shadow: var(--shadow-md);
 }
 

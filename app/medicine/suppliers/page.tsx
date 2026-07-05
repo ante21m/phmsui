@@ -3,7 +3,7 @@ import { useState, useMemo, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { MdAdd, MdEdit, MdDelete, MdClose } from 'react-icons/md';
 import { Text } from '@mantine/core';
-import { EntityForm, type FieldConfig, SmartTable, type SmartColumn } from '@/components';
+import { EntityForm, type FieldConfig, SmartTable, type SmartColumn, TextField } from '@/components';
 import {
   useGetSuppliersQuery,
   useCreateSupplierMutation,
@@ -147,8 +147,8 @@ export default function SuppliersPage() {
             <Text size="sm" fw={500} mb="xs">Phone Numbers</Text>
             {phones.map((p, i) => (
               <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                <input type="text" value={p.phoneNumber} onChange={(e) => updatePhone(i, 'phoneNumber', e.target.value)} placeholder="Phone number" style={{ ...inputStyle, flex: 2 }} />
-                <input type="text" value={p.label} onChange={(e) => updatePhone(i, 'label', e.target.value)} placeholder="Label (e.g. Mobile)" style={{ ...inputStyle, flex: 1 }} />
+                <div style={{ flex: 2 }}><TextField value={p.phoneNumber} onChange={(e) => updatePhone(i, 'phoneNumber', e.target.value)} placeholder="Phone number" /></div>
+                <div style={{ flex: 1 }}><TextField value={p.label} onChange={(e) => updatePhone(i, 'label', e.target.value)} placeholder="Label (e.g. Mobile)" /></div>
                 <button onClick={() => removePhone(i)} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: 28, height: 28, border: 'none', borderRadius: 'var(--radius-sm)',

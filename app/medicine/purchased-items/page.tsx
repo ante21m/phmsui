@@ -2,7 +2,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { MdAdd, MdDelete, MdSave, MdLocalShipping, MdCheckCircle, MdInventory, MdEdit, MdClose, MdSearch, MdPersonAdd, MdArrowUpward, MdArrowDownward, MdUnfoldMore, MdChevronLeft, MdChevronRight, MdVisibility } from 'react-icons/md';
-import { SmartTable, type SmartColumn } from '@/components';
+import { SmartTable, type SmartColumn, TextField } from '@/components';
 import { formatServerDate } from '@/app/reports/reportUtils';
 import {
   useGetItemsQuery,
@@ -34,9 +34,10 @@ interface PurchaseFormItem {
   itemId: string;
   variantId: string;
   itemName: string;
+  uom: string;
   quantity: number;
-  purchasePrice: number;
-  salePrice: number;
+  purchasePrice: number | string;
+  salePrice: number | string;
   batchNo: string;
   expiryDate: string;
 }
@@ -45,6 +46,7 @@ const emptyItem = (): PurchaseFormItem => ({
   itemId: '',
   variantId: '',
   itemName: '',
+  uom: '',
   batchNo: '',
   expiryDate: defaultExpiry,
   quantity: 0,
@@ -248,6 +250,7 @@ export default function PurchasedItemsPage() {
   const [purchaseDate, setPurchaseDate] = useState(today);
   const [formItems, setFormItems] = useState<PurchaseFormItem[]>([emptyItem()]);
   const [supplierFormOpen, setSupplierFormOpen] = useState(false);
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const [supplierForm, setSupplierForm] = useState({ name: '', contactPhone: '', email: '', address: '' });
   const [dispatchedToUserId, setDispatchedToUserId] = useState<string>('');
 
@@ -256,7 +259,7 @@ export default function PurchasedItemsPage() {
       const updated = [...prev];
       if (field === 'itemId') {
         if (!value) {
-          updated[index] = { ...updated[index], itemId: '', itemName: '' };
+          updated[index] = { ...updated[index], itemId: '', itemName: '', uom: '' };
         } else {
           const item = items.find((d) => d.id === value);
           if (item) {
@@ -264,6 +267,7 @@ export default function PurchasedItemsPage() {
               ...updated[index],
               itemId: item.id,
               itemName: item.name,
+              uom: item.unitOfMeasure?.name ?? '',
             };
           }
         }
@@ -310,7 +314,7 @@ export default function PurchasedItemsPage() {
 
   const lastRow = formItems[formItems.length - 1];
   useEffect(() => {
-    if (lastRow && lastRow.itemId && lastRow.quantity > 0 && lastRow.purchasePrice > 0 && lastRow.salePrice > 0) {
+    if (lastRow && lastRow.itemId && lastRow.quantity > 0 && Number(lastRow.purchasePrice) > 0 && Number(lastRow.salePrice) > 0) {
       setFormItems(prev => [...prev, emptyItem()]);
     }
   }, [lastRow]);
@@ -323,8 +327,8 @@ export default function PurchasedItemsPage() {
     const filled = formItems.filter(it => it.itemId);
     if (filled.length === 0) { toast.error('Add at least one item'); return; }
     if (filled.some((it) => it.quantity < 1)) { toast.error('Quantity must be at least 1 for all rows'); return; }
-    if (filled.some((it) => it.purchasePrice <= 0)) { toast.error('Purchase price must be greater than 0'); return; }
-    if (filled.some((it) => it.salePrice <= 0)) { toast.error('Sale price must be greater than 0'); return; }
+    if (filled.some((it) => Number(it.purchasePrice) <= 0)) { toast.error('Purchase price must be greater than 0'); return; }
+    if (filled.some((it) => Number(it.salePrice) <= 0)) { toast.error('Sale price must be greater than 0'); return; }
     try {
       await savePurchase({
         invoiceNo,
@@ -334,9 +338,10 @@ export default function PurchasedItemsPage() {
           itemId: it.itemId || undefined,
           variantId: it.variantId || undefined,
           itemName: it.itemName,
+          uom: it.uom,
           quantity: it.quantity,
-          purchasePrice: it.purchasePrice,
-          salePrice: it.salePrice,
+          purchasePrice: Number(it.purchasePrice),
+          salePrice: Number(it.salePrice),
           batchNo: it.batchNo || undefined,
           expiryDate: it.expiryDate || undefined,
           qtyRemaining: it.quantity,
@@ -489,6 +494,7 @@ export default function PurchasedItemsPage() {
               <thead>
                 <tr>
                   <th>Item <span className={styles.req}>*</span></th>
+                  <th>UOM</th>
                   <th>Batch No</th>
                   <th>Expiry</th>
                   <th>Qty <span className={styles.req}>*</span></th>
@@ -503,7 +509,7 @@ export default function PurchasedItemsPage() {
                   <tr key={i}>
                     <td className={styles.itemCell}>
                       <div className={styles.searchSelectWrap}>
-                        <input type="text"
+                        <TextField
                           ref={el => { inputRefs.current[i] = el; }}
                           value={itemSearchActive === i ? itemSearch : (() => { const d = items.find(x => x.id === item.itemId); if (!d) return ''; if (item.variantId) { const v = d.variants?.find(x => x.id === item.variantId); if (v) return v.variantName; } const hasCustom = d.variants?.some(v => v.variantName !== d.name); if (hasCustom) { const selVar = d.variants?.find(v => v.variantName === item.itemName); return selVar ? selVar.variantName : `${d.name} (${d.itemCode})`; } return `${d.name} (${d.itemCode})`; })()}
                           onChange={(e) => { setItemSearch(e.target.value); setItemSearchActive(i); }}
@@ -541,11 +547,12 @@ export default function PurchasedItemsPage() {
                         )}
                       </div>
                     </td>
-                    <td><input type="text" value={item.batchNo} onChange={(e) => updateItem(i, 'batchNo', e.target.value)} placeholder="Batch" /></td>
-                    <td><input type="date" value={item.expiryDate} onChange={(e) => updateItem(i, 'expiryDate', e.target.value)} /></td>
-                    <td><input type="text" value={item.quantity || ''} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value) || 0)} placeholder="1" /></td>
-                    <td><input type="text" value={item.purchasePrice || ''} onChange={(e) => updateItem(i, 'purchasePrice', Number(e.target.value) || 0)} placeholder="0.00" /></td>
-                    <td><input type="text" value={item.salePrice || ''} onChange={(e) => updateItem(i, 'salePrice', Number(e.target.value) || 0)} placeholder="0.00" /></td>
+                    <td><TextField w={120} value={item.uom} onChange={(e) => updateItem(i, 'uom', e.target.value)} placeholder="Pieces" readOnly={!!item.itemId && (items.find(d => d.id === item.itemId)?.unitOfMeasure?.name != null)} /></td>
+                    <td><TextField value={item.batchNo} onChange={(e) => updateItem(i, 'batchNo', e.target.value)} placeholder="Batch" /></td>
+                    <td><TextField type="date" value={item.expiryDate} onChange={(e) => updateItem(i, 'expiryDate', e.target.value)} /></td>
+                    <td><TextField value={item.quantity || ''} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value) || 0)} placeholder="1" /></td>
+                    <td><TextField value={item.purchasePrice === 0 ? '' : String(item.purchasePrice)} onChange={(e) => updateItem(i, 'purchasePrice', e.target.value)} placeholder="0.00" /></td>
+                    <td><TextField value={item.salePrice === 0 ? '' : String(item.salePrice)} onChange={(e) => updateItem(i, 'salePrice', e.target.value)} placeholder="0.00" /></td>
                     <td className={styles.totalCell}>{(Number(item.quantity) * Number(item.purchasePrice)).toFixed(2)}</td>
                     <td>
                       <button className={styles.rowDeleteBtn} onClick={() => removeRow(i)} disabled={formItems.length === 1} title="Remove row">
@@ -557,7 +564,7 @@ export default function PurchasedItemsPage() {
               </tbody>
               <tfoot>
                 <tr className={styles.totalRow}>
-                  <td colSpan={3} className={styles.totalLabel}>TOTAL</td>
+                  <td colSpan={4} className={styles.totalLabel}>TOTAL</td>
                   <td className={styles.totalQty}>{totalQty}</td>
                   <td colSpan={2} />
                   <td className={styles.totalAmt}>{totalAmt.toFixed(2)}</td>
@@ -572,7 +579,14 @@ export default function PurchasedItemsPage() {
           </div>
 
           <div className={styles.saveWrap}>
-            <button className={styles.saveBtn} onClick={handleSavePurchase}>
+            <button className={styles.saveBtn} onClick={() => {
+              const hasLossItem = formItems.some(it => it.itemId && Number(it.purchasePrice) > 0 && Number(it.salePrice) > 0 && Number(it.purchasePrice) > Number(it.salePrice));
+              if (hasLossItem) {
+                setConfirmSaveOpen(true);
+              } else {
+                handleSavePurchase();
+              }
+            }}>
               <MdSave /> Save Purchase
             </button>
           </div>
@@ -929,6 +943,29 @@ export default function PurchasedItemsPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {confirmSaveOpen && (
+        <div className={styles.modalOverlay} onClick={() => setConfirmSaveOpen(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ width: 400, maxWidth: '90vw' }}>
+            <div className={styles.modalHeader}>
+              <h3>Confirm Save</h3>
+              <button className={styles.formCloseBtn} onClick={() => setConfirmSaveOpen(false)}><MdClose /></button>
+            </div>
+            <div className={styles.modalBody}>
+              <p style={{ fontSize: 14, color: 'var(--gray-700)', margin: 0 }}>Are you sure you want to save this purchase?</p>
+              {formItems.some(it => it.itemId && Number(it.purchasePrice) > 0 && Number(it.salePrice) > 0 && Number(it.purchasePrice) > Number(it.salePrice)) && (
+                <p style={{ fontSize: 13, color: '#d97706', margin: '8px 0 0', padding: '8px 12px', background: '#fffbeb', borderRadius: 6, border: '1px solid #fde68a' }}>
+                  ⚠ The sale price is lower than the purchase price. Selling this item at the current price will result in a loss.
+                </p>
+              )}
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.cancelBtn} onClick={() => setConfirmSaveOpen(false)}>Cancel</button>
+              <button className={styles.saveBtn} onClick={() => { setConfirmSaveOpen(false); handleSavePurchase(); }}>Proceed</button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -1,11 +1,12 @@
 .page { width: 100%; }
 
 .customPageHeader { margin-bottom: 0;
-padding: 4px 10px; min-height: 38px; }
+padding: 2px 8px; min-height: 30px; }
 .customHeaderAction { display: flex; align-items: center; gap: 8px; }
 .pageTitle {
   font-size: 17px; font-weight: 600; color: white; margin: 0 0 0 0;
-  background: var(--teal-primary); padding: 10px 16px;
+  background: var(--teal-primary); padding: 2px 8px; min-height: 30px;
+  display: flex; align-items: center;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 

@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { MdAdd, MdDelete, MdSave, MdLocalShipping, MdCheckCircle, MdInventory, MdEdit, MdClose, MdSearch, MdPersonAdd, MdArrowUpward, MdArrowDownward, MdUnfoldMore, MdChevronLeft, MdChevronRight, MdVisibility } from 'react-icons/md';
-import { SmartTable, type SmartColumn } from '@/components';
+import { SmartTable, type SmartColumn, TextField } from '@/components';
+import smartStyles from '@/components/SmartTable.module.css';
 import {
   useGetDrugsQuery,
   useSavePurchaseMutation,
@@ -14,6 +15,7 @@ import {
   useGetUsersQuery,
   useGetSuppliersQuery,
   useCreateSupplierMutation,
+  CreateDrugPurchaseItem,
   DrugMaster,
   DrugPurchaseItem,
   DrugDispatch,
@@ -34,9 +36,10 @@ const defaultExpiry = oneYearFromNow.toISOString().split('T')[0];
 interface PurchaseFormItem {
   drugId: string;
   drugName: string;
+  uom: string;
   quantity: number;
-  purchasePrice: number;
-  salePrice: number;
+  purchasePrice: number | string;
+  salePrice: number | string;
   batchNo: string;
   expiryDate: string;
 }
@@ -44,6 +47,7 @@ interface PurchaseFormItem {
 const emptyItem = (): PurchaseFormItem => ({
   drugId: '',
   drugName: '',
+  uom: '',
   batchNo: '',
   expiryDate: defaultExpiry,
   quantity: 0,
@@ -100,101 +104,6 @@ export default function PurchasedDrugsPage() {
   const [editStockForm, setEditStockForm] = useState({ batchNo: '', expiryDate: '', qtyRemaining: 0, purchasePrice: 0, salePrice: 0 });
   const [selectedStockIds, setSelectedStockIds] = useState<Set<string>>(new Set());
   const [viewingDispatch, setViewingDispatch] = useState<any | null>(null);
-  const [stockSearch, setStockSearch] = useState('');
-  const [stockPerPage, setStockPerPage] = useState(25);
-  const [stockPage, setStockPage] = useState(1);
-  const [stockSortKey, setStockSortKey] = useState<string | null>('batchNo');
-  const [stockSortDir, setStockSortDir] = useState<'asc' | 'desc'>('asc');
-
-  const toggleStockSort = (key: string) => {
-    if (stockSortKey === key) {
-      setStockSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setStockSortKey(key);
-      setStockSortDir('asc');
-    }
-  };
-
-  const filteredStocks = useMemo(() => {
-    if (!stockSearch) return visibleStocks;
-    const q = stockSearch.toLowerCase();
-    return visibleStocks.filter(s => {
-      const label = stockLabel(s).toLowerCase();
-      const batch = (s.batchNo || '').toLowerCase();
-      return label.includes(q) || batch.includes(q);
-    });
-  }, [visibleStocks, stockSearch]);
-
-  const sortedFilteredStocks = useMemo(() => {
-    if (!stockSortKey) return filteredStocks;
-    return [...filteredStocks].sort((a, b) => {
-      let aVal: unknown;
-      let bVal: unknown;
-      if (stockSortKey === 'label') {
-        aVal = stockLabel(a);
-        bVal = stockLabel(b);
-      } else {
-        aVal = (a as any)[stockSortKey];
-        bVal = (b as any)[stockSortKey];
-      }
-      if (aVal == null && bVal == null) return 0;
-      if (aVal == null) return 1;
-      if (bVal == null) return -1;
-      let cmp = 0;
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        cmp = aVal - bVal;
-      } else {
-        cmp = String(aVal).localeCompare(String(bVal));
-      }
-      return stockSortDir === 'asc' ? cmp : -cmp;
-    });
-  }, [filteredStocks, stockSortKey, stockSortDir]);
-
-  const totalStockPages = Math.max(1, Math.ceil(sortedFilteredStocks.length / stockPerPage));
-
-  useEffect(() => {
-    if (stockPage > totalStockPages) setStockPage(totalStockPages);
-  }, [stockPage, totalStockPages]);
-
-  const paginatedStocks = useMemo(
-    () => sortedFilteredStocks.slice((stockPage - 1) * stockPerPage, stockPage * stockPerPage),
-    [sortedFilteredStocks, stockPage, stockPerPage]
-  );
-
-  const dispatchedLabel = (d: DrugDispatch) => {
-    const byName = d.dispatchedByUser ? `${d.dispatchedByUser.firstName} ${d.dispatchedByUser.fatherName}` : d.dispatchedBy || '';
-    const toName = d.dispatchedToUser ? `${d.dispatchedToUser.firstName} ${d.dispatchedToUser.fatherName}` : d.dispatchedTo || '';
-    return { byName, toName };
-  };
-
-  const dispatchedEnriched = useMemo(() =>
-    (dispatched as DrugDispatch[]).map(d => ({
-      ...d,
-      _dispatchedBy: dispatchedLabel(d).byName,
-      _dispatchedTo: dispatchedLabel(d).toName,
-      _itemsCount: d.items?.length || 0,
-      _drugName: (d.items || []).map(it => it.purchaseItem?.drugName || '').filter(Boolean).join(', '),
-      _qtyDispatched: (d.items || []).reduce((sum, it) => sum + (it.quantity || 0), 0),
-    })), [dispatched]);
-
-  const dispatchedColumns = useMemo<SmartColumn<any>[]>(() => [
-    { header: 'Drug Name', accessor: '_drugName' as any, sortable: true, render: (r: any) => r._drugName || '—' },
-    { header: 'Dispatched By', accessor: '_dispatchedBy' as any, sortable: true, render: (r: any) => r._dispatchedBy || '—' },
-    { header: 'Dispatched To', accessor: '_dispatchedTo' as any, sortable: true, render: (r: any) => r._dispatchedTo || '—' },
-    { header: 'Qty Dispatched', accessor: '_qtyDispatched' as any, textAlign: 'right', sortable: true, render: (r: any) => Number(r._qtyDispatched) },
-    { header: 'Items', accessor: '_itemsCount' as any, sortable: true },
-    { header: 'Status', accessor: 'dispatchStatus', sortable: true, render: (r: any) => {
-      const cls = r.dispatchStatus === 'Confirmed' ? styles.statusConfirmed
-        : r.dispatchStatus === 'Rejected' ? styles.statusRejected
-        : styles.statusPending;
-      return <span className={`${styles.statusBadge} ${cls}`}>{r.dispatchStatus}</span>;
-    }},
-    { accessor: 'dispatchDate', header: 'Dispatch Date', sortable: true, render: (r: any) => formatServerDate(r.dispatchDate) },
-    { header: 'Action', width: '80px', textAlign: 'center', render: (r: any) =>
-      <button className={styles.actionView} onClick={() => setViewingDispatch(r)} title="View Details"><MdVisibility /></button>
-    },
-  ], []);
-
   const [drugSearch, setDrugSearch] = useState('');
   const [drugSearchActive, setDrugSearchActive] = useState(-1);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number; maxH: number } | null>(null);
@@ -209,15 +118,15 @@ export default function PurchasedDrugsPage() {
   };
 
   const toggleSelectAll = () => {
-    if (selectedStockIds.size === filteredStocks.length) {
+    if (selectedStockIds.size === visibleStocks.length) {
       setSelectedStockIds(new Set());
     } else {
-      setSelectedStockIds(new Set(filteredStocks.map((s: DrugPurchaseItem) => s.id)));
+      setSelectedStockIds(new Set(visibleStocks.map((s: DrugPurchaseItem) => s.id)));
     }
   };
 
   const dispatchSelected = () => {
-    const selected = filteredStocks.filter((s: DrugPurchaseItem) => selectedStockIds.has(s.id));
+    const selected = visibleStocks.filter((s: DrugPurchaseItem) => selectedStockIds.has(s.id));
     if (selected.length === 0) { toast.error('No stock items selected'); return; }
     setDispatchItems(selected.map(s => ({ purchaseItemId: s.id, purchaseItemLabel: `${s.drugName} (${s.batchNo || 'N/A'})`, quantity: 0, currentQty: s.qtyRemaining })));
     setSelectedStockIds(new Set());
@@ -236,13 +145,12 @@ export default function PurchasedDrugsPage() {
 
   const saveEditStock = async (s: DrugPurchaseItem) => {
     try {
-      await updateDrugPurchaseItem({
-        id: s.id,
-        batchNo: editStockForm.batchNo,
-        expiryDate: editStockForm.expiryDate,
-        purchasePrice: editStockForm.purchasePrice,
-        salePrice: editStockForm.salePrice,
-      }).unwrap();
+      const body: Partial<CreateDrugPurchaseItem> & { id: string } = { id: s.id };
+      if (editStockForm.batchNo !== (s.batchNo || '')) body.batchNo = editStockForm.batchNo || undefined;
+      if (editStockForm.expiryDate !== (s.expiryDate || '')) body.expiryDate = editStockForm.expiryDate || undefined;
+      if (editStockForm.purchasePrice !== Number(s.purchasePrice)) body.purchasePrice = editStockForm.purchasePrice;
+      if (editStockForm.salePrice !== Number(s.salePrice)) body.salePrice = editStockForm.salePrice;
+      await updateDrugPurchaseItem(body).unwrap();
       toast.success('Stock updated successfully');
       setEditStockId(null);
     } catch (err: unknown) {
@@ -259,6 +167,7 @@ export default function PurchasedDrugsPage() {
   const [purchaseDate, setPurchaseDate] = useState(today);
   const [items, setItems] = useState<PurchaseFormItem[]>([emptyItem()]);
   const [supplierFormOpen, setSupplierFormOpen] = useState(false);
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const [supplierForm, setSupplierForm] = useState({ name: '', contactPhone: '', email: '', address: '' });
   const [dispatchedToUserId, setDispatchedToUserId] = useState<string>('');
 
@@ -271,6 +180,7 @@ export default function PurchasedDrugsPage() {
           ...updated[index],
           drugId: drug?.id ?? '',
           drugName: drug?.genericName ?? '',
+          uom: drug?.unitOfMeasure ?? '',
         };
       } else {
         updated[index] = { ...updated[index], [field]: value };
@@ -284,7 +194,7 @@ export default function PurchasedDrugsPage() {
 
   const lastRow = items[items.length - 1];
   useEffect(() => {
-    if (lastRow && lastRow.drugId && lastRow.quantity > 0 && lastRow.purchasePrice > 0 && lastRow.salePrice > 0) {
+    if (lastRow && lastRow.drugId && lastRow.quantity > 0 && Number(lastRow.purchasePrice) > 0 && Number(lastRow.salePrice) > 0) {
       setItems(prev => [...prev, emptyItem()]);
     }
   }, [lastRow]);
@@ -292,13 +202,52 @@ export default function PurchasedDrugsPage() {
   const totalQty = items.reduce((s, it) => s + Number(it.quantity), 0);
   const totalAmt = items.reduce((s, it) => s + Number(it.purchasePrice) * Number(it.quantity), 0);
 
+  const dispatchedEnriched = useMemo(() => (dispatched as DrugDispatch[]).map(d => {
+    const by = userMap[d.dispatchedBy ?? ''];
+    const toUser = d.dispatchedToUser;
+    const drugName = d.items?.length ? (() => {
+      const first = d.items[0];
+      const stock = (stocks as DrugPurchaseItem[]).find(s => s.id === first.purchaseItemId);
+      return stock ? stockLabel(stock) : first.purchaseItemId;
+    })() : '';
+    return {
+      ...d,
+      _dispatchedBy: by ? `${by.firstName} ${by.fatherName}` : 'Unknown',
+      _dispatchedTo: toUser ? `${toUser.firstName} ${toUser.fatherName}` : 'Unknown',
+      _drugName: drugName,
+      _qtyDispatched: d.items?.reduce((s: number, it: any) => s + Number(it.quantity), 0) || 0,
+    };
+  }), [dispatched, userMap, stocks]);
+
+  const dispatchedColumns = useMemo<SmartColumn<any>[]>(() => [
+    { header: 'Drug Name', accessor: '_drugName' as any, sortable: true },
+    { header: 'Dispatched By', accessor: '_dispatchedBy' as any, sortable: true },
+    { header: 'Dispatched To', accessor: '_dispatchedTo' as any, sortable: true },
+    { header: 'Qty Dispatched', accessor: '_qtyDispatched' as any, sortable: true, textAlign: 'right' },
+    { header: 'Items', render: (r: any) => r.items?.length ?? '—', textAlign: 'right' },
+    {
+      header: 'Status',
+      accessor: 'dispatchStatus' as any,
+      sortable: true,
+      render: (r: any) => {
+        const cls = r.dispatchStatus === 'Confirmed' ? styles.statusConfirmed : r.dispatchStatus === 'Pending' ? styles.statusPending : styles.statusRejected;
+        return <span className={`${styles.statusBadge} ${cls}`}>{r.dispatchStatus || '—'}</span>;
+      },
+    },
+    { header: 'Dispatch Date', accessor: 'dispatchDate' as any, sortable: true, render: (r: any) => formatServerDate(r.dispatchDate) },
+    {
+      header: 'Actions',
+      render: (r: any) => <button className={styles.actionEdit} onClick={() => setViewingDispatch(r)} title="View Details"><MdVisibility /></button>,
+    },
+  ], []);
+
   const handleSavePurchase = async () => {
     if (!invoiceNo) { toast.error('Invoice number is required'); return; }
     const filled = items.filter(it => it.drugId);
     if (filled.length === 0) { toast.error('Add at least one item'); return; }
     if (filled.some((it) => it.quantity < 1)) { toast.error('Quantity must be at least 1 for all rows'); return; }
-    if (filled.some((it) => it.purchasePrice <= 0)) { toast.error('Purchase price must be greater than 0'); return; }
-    if (filled.some((it) => it.salePrice <= 0)) { toast.error('Sale price must be greater than 0'); return; }
+    if (filled.some((it) => Number(it.purchasePrice) <= 0)) { toast.error('Purchase price must be greater than 0'); return; }
+    if (filled.some((it) => Number(it.salePrice) <= 0)) { toast.error('Sale price must be greater than 0'); return; }
     try {
       await savePurchase({
         invoiceNo,
@@ -307,9 +256,10 @@ export default function PurchasedDrugsPage() {
         items: filled.map(it => ({
           drugId: it.drugId || undefined,
           drugName: it.drugName,
+          uom: it.uom,
           quantity: it.quantity,
-          purchasePrice: it.purchasePrice,
-          salePrice: it.salePrice,
+          purchasePrice: Number(it.purchasePrice),
+          salePrice: Number(it.salePrice),
           batchNo: it.batchNo || undefined,
           expiryDate: it.expiryDate || undefined,
           qtyRemaining: it.quantity,
@@ -437,8 +387,7 @@ export default function PurchasedDrugsPage() {
         <div className={styles.tabContent}>
           <div className={styles.formHeader}>
             <div className={styles.formField}>
-              <label>Invoice No <span className={styles.req}>*</span></label>
-              <input type="text" value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} placeholder="Invoice number" />
+              <TextField label="Invoice No" required value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} placeholder="Invoice number" />
             </div>
             <div className={styles.formField}>
               <label>Supplier</label>
@@ -453,23 +402,23 @@ export default function PurchasedDrugsPage() {
               </div>
             </div>
             <div className={styles.formField}>
-              <label>Purchase Date</label>
-              <input type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
+              <TextField label="Purchase Date" type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
             </div>
           </div>
 
-          <div className={styles.itemsTableWrap}>
-            <table className={styles.itemsTable}>
+          <div className={smartStyles.tableWrap}>
+            <table className={`${smartStyles.table} ${styles.registerTable}`}>
               <thead>
                 <tr>
-                  <th>Drug <span className={styles.req}>*</span></th>
-                  <th>Batch No</th>
-                  <th>Expiry</th>
-                  <th>Qty <span className={styles.req}>*</span></th>
-                  <th>Purchase Price <span className={styles.req}>*</span></th>
-                  <th>Sale Price <span className={styles.req}>*</span></th>
-                  <th>Total</th>
-                  <th>Action</th>
+                  <th className={smartStyles.th}>Drug <span className={styles.req}>*</span></th>
+                  <th className={smartStyles.th}>UOM</th>
+                  <th className={smartStyles.th}>Batch No</th>
+                  <th className={smartStyles.th}>Expiry</th>
+                  <th className={smartStyles.th}>Qty <span className={styles.req}>*</span></th>
+                  <th className={smartStyles.th}>Purchase Price <span className={styles.req}>*</span></th>
+                  <th className={smartStyles.th}>Sale Price <span className={styles.req}>*</span></th>
+                  <th className={smartStyles.th}>Total</th>
+                  <th className={smartStyles.th}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -477,9 +426,9 @@ export default function PurchasedDrugsPage() {
                   <tr key={i}>
                     <td className={styles.drugCell}>
                       <div className={styles.searchSelectWrap}>
-                        <input type="text"
+                        <TextField
                           ref={el => { inputRefs.current[i] = el; }}
-                            value={drugSearchActive === i ? drugSearch : (() => { const d = drugs.find(x => x.id === item.drugId); return d ? `${d.genericName} ${d.dosageForm} - ${d.strength}` : ''; })()}
+                          value={drugSearchActive === i ? drugSearch : (() => { const d = drugs.find(x => x.id === item.drugId); return d ? `${d.genericName} ${d.dosageForm} - ${d.strength}` : ''; })()}
                           onChange={(e) => { setDrugSearch(e.target.value); setDrugSearchActive(i); }}
                           onFocus={(e) => {
                             setDrugSearch(''); setDrugSearchActive(i);
@@ -500,18 +449,19 @@ export default function PurchasedDrugsPage() {
                                   <div key={d.id} className={`${styles.searchOption} ${item.drugId === d.id ? styles.searchOptionActive : ''}`}
                                     onClick={() => { updateItem(i, 'drugId', d.id); setDrugSearchActive(-1); setDropdownPos(null); setDrugSearch(''); }}>
                                     {d.genericName} {d.dosageForm} - {d.strength}
-                                  </div>
-                                ))}
+                                </div>
+                              ))}
                             </div>
                           </>
                         )}
                       </div>
                     </td>
-                    <td><input type="text" value={item.batchNo} onChange={(e) => updateItem(i, 'batchNo', e.target.value)} placeholder="Batch" /></td>
-                    <td><input type="date" value={item.expiryDate} onChange={(e) => updateItem(i, 'expiryDate', e.target.value)} /></td>
-                    <td><input type="text" value={item.quantity || ''} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value) || 0)} placeholder="1" /></td>
-                    <td><input type="text" value={item.purchasePrice || ''} onChange={(e) => updateItem(i, 'purchasePrice', Number(e.target.value) || 0)} placeholder="0.00" /></td>
-                    <td><input type="text" value={item.salePrice || ''} onChange={(e) => updateItem(i, 'salePrice', Number(e.target.value) || 0)} placeholder="0.00" /></td>
+                    <td><TextField w={120} value={item.uom} onChange={(e) => updateItem(i, 'uom', e.target.value)} placeholder="Tablet" readOnly={!!item.drugId && !!drugs.find(d => d.id === item.drugId)?.unitOfMeasure} /></td>
+                    <td><TextField value={item.batchNo} onChange={(e) => updateItem(i, 'batchNo', e.target.value)} placeholder="Batch" /></td>
+                    <td><TextField type="date" value={item.expiryDate} onChange={(e) => updateItem(i, 'expiryDate', e.target.value)} /></td>
+                    <td><TextField value={item.quantity || ''} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value) || 0)} placeholder="1" /></td>
+                    <td><TextField value={item.purchasePrice === 0 ? '' : String(item.purchasePrice)} onChange={(e) => updateItem(i, 'purchasePrice', e.target.value)} placeholder="0.00" /></td>
+                    <td><TextField value={item.salePrice === 0 ? '' : String(item.salePrice)} onChange={(e) => updateItem(i, 'salePrice', e.target.value)} placeholder="0.00" /></td>
                     <td className={styles.totalCell}>{(Number(item.quantity) * Number(item.purchasePrice)).toFixed(2)}</td>
                     <td>
                       <button className={styles.rowDeleteBtn} onClick={() => removeRow(i)} disabled={items.length === 1} title="Remove row">
@@ -523,9 +473,9 @@ export default function PurchasedDrugsPage() {
               </tbody>
               <tfoot>
                 <tr className={styles.totalRow}>
-                  <td colSpan={3} className={styles.totalLabel}>TOTAL</td>
+                  <td colSpan={4} className={styles.totalLabel}>TOTAL</td>
                   <td className={styles.totalQty}>{totalQty}</td>
-                  <td colSpan={2} />
+                  <td colSpan={3} />
                   <td className={styles.totalAmt}>{totalAmt.toFixed(2)}</td>
                   <td />
                 </tr>
@@ -538,7 +488,14 @@ export default function PurchasedDrugsPage() {
           </div>
 
           <div className={styles.saveWrap}>
-            <button className={styles.saveBtn} onClick={handleSavePurchase}>
+            <button className={styles.saveBtn} onClick={() => {
+              const hasLossItem = items.some(it => it.drugId && Number(it.purchasePrice) > 0 && Number(it.salePrice) > 0 && Number(it.purchasePrice) > Number(it.salePrice));
+              if (hasLossItem) {
+                setConfirmSaveOpen(true);
+              } else {
+                handleSavePurchase();
+              }
+            }}>
               <MdSave /> Save Purchase
             </button>
           </div>
@@ -552,22 +509,10 @@ export default function PurchasedDrugsPage() {
                 </div>
                 <div className={styles.modalBody}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                    <div className={styles.formField}>
-                      <label>Name <span className={styles.req}>*</span></label>
-                      <input type="text" value={supplierForm.name} onChange={(e) => setSupplierForm(p => ({ ...p, name: e.target.value }))} placeholder="Supplier name" />
-                    </div>
-                    <div className={styles.formField}>
-                      <label>Phone</label>
-                      <input type="text" value={supplierForm.contactPhone} onChange={(e) => setSupplierForm(p => ({ ...p, contactPhone: e.target.value }))} placeholder="Contact phone" />
-                    </div>
-                    <div className={styles.formField}>
-                      <label>Email</label>
-                      <input type="email" value={supplierForm.email} onChange={(e) => setSupplierForm(p => ({ ...p, email: e.target.value }))} placeholder="Email" />
-                    </div>
-                    <div className={styles.formField}>
-                      <label>Address</label>
-                      <input type="text" value={supplierForm.address} onChange={(e) => setSupplierForm(p => ({ ...p, address: e.target.value }))} placeholder="Address" />
-                    </div>
+                    <TextField label="Name" required value={supplierForm.name} onChange={(e) => setSupplierForm(p => ({ ...p, name: e.target.value }))} placeholder="Supplier name" />
+                    <TextField label="Phone" value={supplierForm.contactPhone} onChange={(e) => setSupplierForm(p => ({ ...p, contactPhone: e.target.value }))} placeholder="Contact phone" />
+                    <TextField label="Email" type="email" value={supplierForm.email} onChange={(e) => setSupplierForm(p => ({ ...p, email: e.target.value }))} placeholder="Email" />
+                    <TextField label="Address" value={supplierForm.address} onChange={(e) => setSupplierForm(p => ({ ...p, address: e.target.value }))} placeholder="Address" />
                   </div>
                 </div>
                 <div className={styles.modalFooter}>
@@ -584,130 +529,104 @@ export default function PurchasedDrugsPage() {
       {tab === 'stocks' && (
         <div className={styles.tabContent}>
           {visibleStocks.length === 0 ? (
-            <p className={styles.emptyCell}>No stock records found. Register a purchase first.</p>
+            <p className={smartStyles.emptyCell}>No stock records found. Register a purchase first.</p>
           ) : (
             <>
-              <div className={styles.stockActions}>
-                {selectedStockIds.size > 0 && (
-                  <>
-                    <span className={styles.selectedCount}>{selectedStockIds.size} selected</span>
-                    <button className={styles.dispatchSelectedBtn} onClick={dispatchSelected}>
-                      <MdLocalShipping /> Dispatch Selected ({selectedStockIds.size})
-                    </button>
-                  </>
-                )}
-              </div>
-              <div className={styles.tableControls}>
-                <div className={styles.showEntries}>
-                  <label>Show</label>
-                  <select value={stockPerPage} onChange={(e) => { setStockPerPage(Number(e.target.value)); setStockPage(1); }} aria-label="Show entries">
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
-                  <label>entries</label>
+              {selectedStockIds.size > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                  <span style={{ fontWeight: 600, fontSize: 14 }}>{selectedStockIds.size} selected</span>
+                  <button className={styles.dispatchSelectedBtn} onClick={dispatchSelected}>
+                    <MdLocalShipping /> Dispatch Selected ({selectedStockIds.size})
+                  </button>
                 </div>
-                <div className={styles.searchBox}>
-                  <label>Search:</label>
-                  <div className={styles.searchInputWrap}>
-                    <MdSearch className={styles.searchIcon} />
-                    <input type="text" value={stockSearch} onChange={(e) => { setStockSearch(e.target.value); setStockPage(1); }} placeholder="Search drug or batch..." />
-                  </div>
-                </div>
-              </div>
-              <div className={styles.itemsTableWrap}>
-                <table className={styles.itemsTable}>
-                  <thead>
-                    <tr>
-                      <th className={styles.checkCol}>
-                        <input type="checkbox" checked={selectedStockIds.size === filteredStocks.length && filteredStocks.length > 0}
-                          onChange={toggleSelectAll} />
-                      </th>
-                      <th className={styles.thSortable} onClick={() => toggleStockSort('label')}><span className={styles.thInner}><span>Drug Name</span>{stockSortKey === 'label' ? (stockSortDir === 'asc' ? <MdArrowUpward className={styles.sortIcon} /> : <MdArrowDownward className={styles.sortIcon} />) : <MdUnfoldMore className={styles.sortIcon} />}</span></th>
-                      <th className={styles.thSortable} onClick={() => toggleStockSort('batchNo')}><span className={styles.thInner}><span>Batch No</span>{stockSortKey === 'batchNo' ? (stockSortDir === 'asc' ? <MdArrowUpward className={styles.sortIcon} /> : <MdArrowDownward className={styles.sortIcon} />) : <MdUnfoldMore className={styles.sortIcon} />}</span></th>
-                      <th className={styles.thSortable} onClick={() => toggleStockSort('expiryDate')}><span className={styles.thInner}><span>Expiry</span>{stockSortKey === 'expiryDate' ? (stockSortDir === 'asc' ? <MdArrowUpward className={styles.sortIcon} /> : <MdArrowDownward className={styles.sortIcon} />) : <MdUnfoldMore className={styles.sortIcon} />}</span></th>
-                      <th className={styles.thSortable} onClick={() => toggleStockSort('quantity')}><span className={styles.thInner}><span>Qty</span>{stockSortKey === 'quantity' ? (stockSortDir === 'asc' ? <MdArrowUpward className={styles.sortIcon} /> : <MdArrowDownward className={styles.sortIcon} />) : <MdUnfoldMore className={styles.sortIcon} />}</span></th>
-                      <th className={styles.thSortable} onClick={() => toggleStockSort('purchasePrice')}><span className={styles.thInner}><span>Purchase Price</span>{stockSortKey === 'purchasePrice' ? (stockSortDir === 'asc' ? <MdArrowUpward className={styles.sortIcon} /> : <MdArrowDownward className={styles.sortIcon} />) : <MdUnfoldMore className={styles.sortIcon} />}</span></th>
-                      <th className={styles.thSortable} onClick={() => toggleStockSort('salePrice')}><span className={styles.thInner}><span>Sale Price</span>{stockSortKey === 'salePrice' ? (stockSortDir === 'asc' ? <MdArrowUpward className={styles.sortIcon} /> : <MdArrowDownward className={styles.sortIcon} />) : <MdUnfoldMore className={styles.sortIcon} />}</span></th>
-                      <th><span className={styles.thInner}><span>Total Price</span></span></th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedStocks.map((s, i) => (
-                      <tr key={s.id ?? i} className={`${selectedStockIds.has(s.id) ? styles.rowSelected : ''}`}>
-                        <td className={styles.checkCol}>
-                          <input type="checkbox" checked={selectedStockIds.has(s.id)} onChange={() => toggleStockSelect(s.id)} />
-                        </td>
-                        <td>{(() => { const dm = drugMap[s.drugId ?? '']; return dm ? `${dm.genericName} ${dm.dosageForm} - ${dm.strength}` : s.drugName; })()}</td>
-                        {editStockId === s.id ? (
-                          <>
-                            <td><input type="text" value={editStockForm.batchNo} onChange={(e) => setEditStockForm(p => ({ ...p, batchNo: e.target.value }))} /></td>
-                            <td><input type="date" value={editStockForm.expiryDate} onChange={(e) => setEditStockForm(p => ({ ...p, expiryDate: e.target.value }))} /></td>
-                            <td>{s.quantity}</td>
-                            <td><input type="number" step="0.01" value={editStockForm.purchasePrice} onChange={(e) => setEditStockForm(p => ({ ...p, purchasePrice: Number(e.target.value) }))} /></td>
-                            <td><input type="number" step="0.01" value={editStockForm.salePrice} onChange={(e) => setEditStockForm(p => ({ ...p, salePrice: Number(e.target.value) }))} /></td>
-                            <td>{(Number(s.purchasePrice) * Number(s.quantity)).toFixed(2)}</td>
-                            <td>
-                              <span className={styles.actionBtns}>
-                                <button className={styles.editSaveBtn} onClick={() => saveEditStock(s)} title="Save"><MdSave /></button>
-                                <button className={styles.editCancelBtn} onClick={() => setEditStockId(null)} title="Cancel"><MdClose /></button>
-                              </span>
-                            </td>
-                          </>
-                        ) : (
-                          <>
-                            <td>{s.batchNo || '—'}</td>
-                            <td>{s.expiryDate ? new Date(s.expiryDate).toLocaleDateString() : '—'}</td>
-                            <td>{s.quantity}</td>
-                            <td>{Number(s.purchasePrice).toFixed(2)}</td>
-                            <td>{Number(s.salePrice).toFixed(2)}</td>
-                            <td>{(Number(s.purchasePrice) * Number(s.quantity)).toFixed(2)}</td>
-                            <td>
-                              <span className={styles.actionBtns}>
-                                <button className={styles.actionEdit} onClick={() => openEditStock(s)} title="Edit"><MdEdit /></button>
-                                <button className={styles.actionDispatch} onClick={() => stockDispatch(s)} title="Dispatch"><MdLocalShipping /></button>
-                              </span>
-                            </td>
-                          </>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {sortedFilteredStocks.length > 0 && (
-                <>
-                  <div className={styles.paginationBar}>
-                    <div className={styles.paginationInfo}>
-                      Showing {(stockPage - 1) * stockPerPage + 1}&ndash;{Math.min(stockPage * stockPerPage, sortedFilteredStocks.length)} of {sortedFilteredStocks.length} entries
-                    </div>
-                    <div className={styles.paginationControls}>
-                      <button className={styles.pageBtn} disabled={stockPage <= 1} onClick={() => setStockPage(p => Math.max(1, p - 1))}>
-                        <MdChevronLeft />
-                      </button>
-                      {(() => {
-                        const pages: number[] = [];
-                        const start = Math.max(1, stockPage - 2);
-                        const end = Math.min(totalStockPages, stockPage + 2);
-                        for (let i = start; i <= end; i++) pages.push(i);
-                        return pages;
-                      })().map(p => (
-                        <button key={p} className={`${styles.pageBtn} ${p === stockPage ? styles.pageBtnActive : ''}`} onClick={() => setStockPage(p)}>{p}</button>
-                      ))}
-                      <button className={styles.pageBtn} disabled={stockPage >= totalStockPages} onClick={() => setStockPage(p => Math.min(totalStockPages, p + 1))}>
-                        <MdChevronRight />
-                      </button>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-                    <div style={{ background: '#1a73e8', color: '#fff', padding: '8px 24px', borderRadius: 6, fontWeight: 700, fontSize: 15, letterSpacing: 0.5 }}>
-                      Grand Total Purchased: {sortedFilteredStocks.reduce((s, it) => s + Number(it.quantity), 0)} items | {sortedFilteredStocks.reduce((s, it) => s + Number(it.purchasePrice) * Number(it.quantity), 0).toFixed(2)}
-                    </div>
-                  </div>
-                </>
               )}
+              <SmartTable
+                data={visibleStocks}
+                columns={[
+                  {
+                    header: <input type="checkbox" checked={selectedStockIds.size === visibleStocks.length && visibleStocks.length > 0}
+                      onClick={(e) => e.stopPropagation()} onChange={toggleSelectAll} />,
+                    render: (row) => <input type="checkbox" checked={selectedStockIds.has(row.id)} onClick={(e) => e.stopPropagation()} onChange={() => toggleStockSelect(row.id)} />,
+                  },
+                  {
+                    accessor: 'drugName' as keyof DrugPurchaseItem,
+                    header: 'Drug Name',
+                    sortable: true,
+                    render: (row) => { const dm = drugMap[row.drugId ?? '']; return dm ? `${dm.genericName} ${dm.dosageForm} - ${dm.strength}` : row.drugName; },
+                  },
+                  {
+                    accessor: 'batchNo' as keyof DrugPurchaseItem,
+                    header: 'Batch No',
+                    sortable: true,
+                    render: (row) => editStockId === row.id
+                      ? <TextField value={editStockForm.batchNo} onChange={(e) => setEditStockForm(p => ({ ...p, batchNo: e.target.value }))} />
+                      : (row.batchNo || '—'),
+                  },
+                  {
+                    accessor: 'expiryDate' as keyof DrugPurchaseItem,
+                    header: 'Expiry',
+                    sortable: true,
+                    render: (row) => editStockId === row.id
+                      ? <TextField type="date" value={editStockForm.expiryDate} onChange={(e) => setEditStockForm(p => ({ ...p, expiryDate: e.target.value }))} />
+                      : (row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : '—'),
+                  },
+                  { accessor: 'quantity' as keyof DrugPurchaseItem, header: 'Qty', sortable: true, textAlign: 'right' },
+                  {
+                    accessor: 'purchasePrice' as keyof DrugPurchaseItem,
+                    header: 'Purchase Price',
+                    sortable: true,
+                    textAlign: 'right',
+                    render: (row) => editStockId === row.id
+                      ? <TextField type="number" step="0.01" value={editStockForm.purchasePrice} onChange={(e) => setEditStockForm(p => ({ ...p, purchasePrice: Number(e.target.value) }))} />
+                      : Number(row.purchasePrice).toFixed(2),
+                  },
+                  {
+                    accessor: 'salePrice' as keyof DrugPurchaseItem,
+                    header: 'Sale Price',
+                    sortable: true,
+                    textAlign: 'right',
+                    render: (row) => editStockId === row.id
+                      ? <TextField type="number" step="0.01" value={editStockForm.salePrice} onChange={(e) => setEditStockForm(p => ({ ...p, salePrice: Number(e.target.value) }))} />
+                      : Number(row.salePrice).toFixed(2),
+                  },
+                  {
+                    header: 'Total Price',
+                    textAlign: 'right',
+                    render: (row) => (Number(row.purchasePrice) * Number(row.quantity)).toFixed(2),
+                  },
+                  {
+                    header: 'Actions',
+                    textAlign: 'center',
+                    render: (row) => editStockId === row.id ? (
+                      <span className={styles.actionBtns}>
+                        <button className={styles.editSaveBtn} onClick={(e) => { e.stopPropagation(); saveEditStock(row); }} title="Save"><MdSave /></button>
+                        <button className={styles.editCancelBtn} onClick={(e) => { e.stopPropagation(); setEditStockId(null); }} title="Cancel"><MdClose /></button>
+                      </span>
+                    ) : (
+                      <span className={styles.actionBtns}>
+                        <button className={styles.actionEdit} onClick={(e) => { e.stopPropagation(); openEditStock(row); }} title="Edit"><MdEdit /></button>
+                        <button className={styles.actionDispatch} onClick={(e) => { e.stopPropagation(); stockDispatch(row); }} title="Dispatch"><MdLocalShipping /></button>
+                      </span>
+                    ),
+                  },
+                ]}
+                rowKey={(row) => row.id}
+                withSearch
+                withPagination
+                withRowNumbers
+                defaultPageSize={25}
+                onRowClick={(row) => toggleStockSelect(row.id)}
+                searchFilter={(row, q) => {
+                  const dm = drugMap[row.drugId ?? ''];
+                  const label = dm ? `${dm.genericName} ${dm.dosageForm} - ${dm.strength}` : row.drugName;
+                  return label.toLowerCase().includes(q) || (row.batchNo || '').toLowerCase().includes(q);
+                }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                <div style={{ background: '#1a73e8', color: '#fff', padding: '8px 24px', borderRadius: 6, fontWeight: 700, fontSize: 15, letterSpacing: 0.5 }}>
+                  Grand Total Purchased: {visibleStocks.reduce((s, it) => s + Number(it.quantity), 0)} items | {visibleStocks.reduce((s, it) => s + Number(it.purchasePrice) * Number(it.quantity), 0).toFixed(2)}
+                </div>
+              </div>
             </>
           )}
         </div>
@@ -718,17 +637,17 @@ export default function PurchasedDrugsPage() {
         <div className={styles.tabContent}>
           <h2 className={styles.subTitle}>Dispatch Drugs from Stock</h2>
           {dispatchItems.length === 0 ? (
-            <p className={styles.emptyCell}>Select stock items from the Stocks tab to dispatch.</p>
+            <p className={smartStyles.emptyCell}>Select stock items from the Stocks tab to dispatch.</p>
           ) : (
             <>
-              <div className={styles.itemsTableWrap}>
-                <table className={styles.itemsTable}>
+              <div className={smartStyles.tableWrap}>
+            <table className={smartStyles.table}>
                   <thead>
                     <tr>
-                      <th>Drug Name</th>
-                      <th>Available Qty</th>
-                      <th>Dispatch Qty <span className={styles.req}>*</span></th>
-                      <th>Action</th>
+                      <th className={smartStyles.th}>Drug Name</th>
+                      <th className={smartStyles.th}>Available Qty</th>
+                      <th className={smartStyles.th}>Dispatch Qty <span className={styles.req}>*</span></th>
+                      <th className={smartStyles.th}>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -752,7 +671,7 @@ export default function PurchasedDrugsPage() {
                           </td>
                           <td className={styles.totalCell}>{Math.max(0, item.currentQty - (item.quantity || 0))}</td>
                           <td>
-                            <input type="text" inputMode="numeric" value={item.quantity || ''}
+                            <TextField value={item.quantity || ''} inputMode="numeric"
                               onChange={(e) => {
                                 const v = e.target.value.replace(/[^0-9]/g, '');
                                 updateDispatchItem(i, 'quantity', v ? Number(v) : 0);
@@ -874,6 +793,29 @@ export default function PurchasedDrugsPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {confirmSaveOpen && (
+        <div className={styles.modalOverlay} onClick={() => setConfirmSaveOpen(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ width: 400, maxWidth: '90vw' }}>
+            <div className={styles.modalHeader}>
+              <h3>Confirm Save</h3>
+              <button className={styles.formCloseBtn} onClick={() => setConfirmSaveOpen(false)}><MdClose /></button>
+            </div>
+            <div className={styles.modalBody}>
+              <p style={{ fontSize: 14, color: 'var(--gray-700)', margin: 0 }}>Are you sure you want to save this purchase?</p>
+              {items.some(it => it.drugId && Number(it.purchasePrice) > 0 && Number(it.salePrice) > 0 && Number(it.purchasePrice) > Number(it.salePrice)) && (
+                <p style={{ fontSize: 13, color: '#d97706', margin: '8px 0 0', padding: '8px 12px', background: '#fffbeb', borderRadius: 6, border: '1px solid #fde68a' }}>
+                  ⚠ The sale price is lower than the purchase price. Selling this item at the current price will result in a loss.
+                </p>
+              )}
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.cancelBtn} onClick={() => setConfirmSaveOpen(false)}>Cancel</button>
+              <button className={styles.saveBtn} onClick={() => { setConfirmSaveOpen(false); handleSavePurchase(); }}>Proceed</button>
+            </div>
+          </div>
         </div>
       )}
 
