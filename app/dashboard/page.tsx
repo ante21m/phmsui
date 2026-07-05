@@ -6,7 +6,7 @@ import styles from './Dashboard.module.css';
 export default function DashboardPage() {
   const { data: drugs = [] } = useGetDrugsQuery();
   const { data: lowStock } = useGetLowStockDrugsQuery();
-  const { data: expiry = [] } = useGetExpiryAlertsQuery();
+  const { data: expiry = [] } = useGetExpiryAlertsQuery(30);
   const lowStockCount = lowStock?.data?.length ?? 0;
 
   const stats = [

@@ -7,13 +7,18 @@ import { formatServerDate } from '@/app/reports/reportUtils';
 import styles from './ExpiryAlert.module.css';
 
 export default function ExpiryAlertPage() {
-  const { data, isLoading } = useGetExpiryAlertsQuery();
+  const { data, isLoading } = useGetExpiryAlertsQuery(30);
   const rawItems = Array.isArray(data) ? data : [];
-  const items = useMemo(() => rawItems.filter(i => i.qtyRemaining >= 0), [rawItems]);
+  const items = useMemo(() => rawItems.filter(i => i.qtyRemaining > 0), [rawItems]);
 
   const columns = useMemo<SmartColumn<DrugPurchaseItem>[]>(
     () => [
-      { accessor: 'drugName', header: 'Drug Name', sortable: true },
+      { accessor: 'drugName', header: 'Name', sortable: true },
+      {
+        accessor: 'type',
+        header: 'Type',
+        sortable: true,
+      },
       { accessor: 'batchNo', header: 'Batch', sortable: true },
       { accessor: 'qtyRemaining', header: 'Qty Remaining', sortable: true },
       {
