@@ -233,6 +233,7 @@ export interface LowStockItem {
   name: string;
   qtyRemaining: number;
   reorderLevel: number;
+  remainingDays: number; //demeke
   type: 'drug' | 'item';
 }
 
