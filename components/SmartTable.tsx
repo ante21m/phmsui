@@ -163,14 +163,14 @@ export default function SmartTable<T>({
     const tbody = (
       <tbody>
         {isLoading ? (
-          <tr>
+          <tr key="loading">
             <td colSpan={columns.length + (withRowNumbers ? 1 : 0)} className={styles.loadingCell}>
               <div className={styles.spinner} />
               {loadingMessage}
             </td>
           </tr>
         ) : paginated.length === 0 ? (
-          <tr>
+          <tr key="empty">
             <td colSpan={columns.length + (withRowNumbers ? 1 : 0)} className={styles.emptyCell}>
               {emptyMessage}
             </td>

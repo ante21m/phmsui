@@ -75,6 +75,7 @@ export interface DrugPurchaseItem {
   batchNo: string;
   expiryDate: string;
   qtyRemaining: number;
+  remainingDays?: number;
   createdAt: string;
   drug?: DrugMaster;
 }
@@ -806,6 +807,21 @@ export const drugApi = createApi({
     }),
     getExpiryAlerts: builder.query<DrugPurchaseItem[], void>({
       query: () => '/drug-purchases/expiry-alert?days=30',
+      transformResponse: (res: { data: { name: string; batchNo: string; expiryDate: string; qtyRemaining: number; remainingDays: number; type: string }[]; total: number }) =>
+        res.data.map((r, i) => ({
+          id: `${r.batchNo}-${i}`,
+          purchaseId: '',
+          drugId: null,
+          drugName: r.name,
+          quantity: 0,
+          purchasePrice: 0,
+          salePrice: 0,
+          batchNo: r.batchNo,
+          expiryDate: r.expiryDate,
+          qtyRemaining: r.qtyRemaining,
+          remainingDays: r.remainingDays,
+          createdAt: '',
+        })),
     }),
 
     // ─── Drug Losses ───
