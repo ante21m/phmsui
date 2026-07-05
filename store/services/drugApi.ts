@@ -76,6 +76,7 @@ export interface DrugPurchaseItem {
   expiryDate: string;
   qtyRemaining: number;
   remainingDays?: number;
+  type?: string;
   createdAt: string;
   drug?: DrugMaster;
 }
@@ -805,9 +806,9 @@ export const drugApi = createApi({
         return `/drug-purchases/low-stock${qs ? '?' + qs : ''}`;
       },
     }),
-    getExpiryAlerts: builder.query<DrugPurchaseItem[], void>({
-      query: () => '/drug-purchases/expiry-alert?days=30',
-      transformResponse: (res: { data: { name: string; batchNo: string; expiryDate: string; qtyRemaining: number; remainingDays: number; type: string }[]; total: number }) =>
+    getExpiryAlerts: builder.query<DrugPurchaseItem[], number>({
+      query: (days = 30) => `/drug-purchases/expiry-alert?days=${days}`,
+      transformResponse: (res: { data: { name: string; batchNo: string; expiryDate: string; qtyRemaining: number; remainingDays: number; type: string }[] }) =>
         res.data.map((r, i) => ({
           id: `${r.batchNo}-${i}`,
           purchaseId: '',
@@ -820,6 +821,7 @@ export const drugApi = createApi({
           expiryDate: r.expiryDate,
           qtyRemaining: r.qtyRemaining,
           remainingDays: r.remainingDays,
+          type: r.type,
           createdAt: '',
         })),
     }),
