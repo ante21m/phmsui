@@ -1,7 +1,7 @@
 import { fetchBaseQuery, type FetchBaseQueryError, type BaseQueryFn, type FetchArgs } from '@reduxjs/toolkit/query/react';
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003',
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004',
   prepareHeaders: (headers) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
     if (token) headers.set('Authorization', `Bearer ${token}`);

@@ -11,7 +11,7 @@ export interface StockItem {
 
 export const pharmacyRequestApi = createApi({
   reducerPath: 'pharmacyRequestApi',
-  baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002' }),
+  baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3004' }),
   tagTypes: ['PharmacyRequest'],
   endpoints: (builder) => ({
     getAvailableDrugs: builder.query<StockItem[], void>({
