@@ -1,7 +1,7 @@
 ﻿'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { MdAdd, MdDelete, MdSave, MdLocalShipping, MdCheckCircle, MdInventory, MdEdit, MdClose, MdSearch, MdPersonAdd, MdArrowUpward, MdArrowDownward, MdUnfoldMore, MdChevronLeft, MdChevronRight, MdVisibility } from 'react-icons/md';
+import { MdAdd, MdDelete, MdSave, MdLocalShipping, MdCheckCircle, MdInventory, MdEdit, MdClose, MdSearch, MdPersonAdd, MdArrowUpward, MdArrowDownward, MdUnfoldMore, MdChevronLeft, MdChevronRight, MdVisibility, MdFullscreen, MdFullscreenExit } from 'react-icons/md';
 import { SmartTable, type SmartColumn, TextField } from '@/components';
 import smartStyles from '@/components/SmartTable.module.css';
 import {
@@ -108,6 +108,7 @@ export default function PurchasedDrugsPage() {
   const [viewingDispatch, setViewingDispatch] = useState<any | null>(null);
   const [drugSearch, setDrugSearch] = useState('');
   const [drugSearchActive, setDrugSearchActive] = useState(-1);
+  const [modalMaximized, setModalMaximized] = useState(false);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number; maxH: number } | null>(null);
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
@@ -517,10 +518,13 @@ export default function PurchasedDrugsPage() {
 
           {supplierFormOpen && (
             <div className={styles.modalOverlay} onClick={() => setSupplierFormOpen(false)}>
-              <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={modalMaximized ? { width: '90vw', maxWidth: 600 } : {}}>
                 <div className={styles.modalHeader}>
                   <h3>Add New Supplier</h3>
-                  <button className={styles.formCloseBtn} onClick={() => setSupplierFormOpen(false)}><MdClose /></button>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button className={styles.formCloseBtn} onClick={() => setModalMaximized(v => !v)} title={modalMaximized ? 'Minimize' : 'Maximize'}>{modalMaximized ? <MdFullscreenExit /> : <MdFullscreen />}</button>
+                    <button className={styles.formCloseBtn} onClick={() => setSupplierFormOpen(false)}><MdClose /></button>
+                  </div>
                 </div>
                 <div className={styles.modalBody}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -766,10 +770,13 @@ export default function PurchasedDrugsPage() {
 
           {viewingDispatch && (
             <div className={styles.modalOverlay} onClick={() => setViewingDispatch(null)}>
-              <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={modalMaximized ? { width: '90vw', maxWidth: 1200 } : {}}>
                 <div className={styles.modalHeader}>
                   <h3>Dispatch Details</h3>
-                  <button className={styles.formCloseBtn} onClick={() => setViewingDispatch(null)}><MdClose /></button>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button className={styles.formCloseBtn} onClick={() => setModalMaximized(v => !v)} title={modalMaximized ? 'Minimize' : 'Maximize'}>{modalMaximized ? <MdFullscreenExit /> : <MdFullscreen />}</button>
+                    <button className={styles.formCloseBtn} onClick={() => setViewingDispatch(null)}><MdClose /></button>
+                  </div>
                 </div>
                 <div className={styles.modalBody}>
                   <div className={styles.detailGrid}>
@@ -824,10 +831,13 @@ export default function PurchasedDrugsPage() {
 
       {confirmSaveOpen && (
         <div className={styles.modalOverlay} onClick={() => setConfirmSaveOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ width: 400, maxWidth: '90vw' }}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={modalMaximized ? { width: '90vw', maxWidth: 600 } : { width: 400, maxWidth: '90vw' }}>
             <div className={styles.modalHeader}>
               <h3>Confirm Save</h3>
-              <button className={styles.formCloseBtn} onClick={() => setConfirmSaveOpen(false)}><MdClose /></button>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button className={styles.formCloseBtn} onClick={() => setModalMaximized(v => !v)} title={modalMaximized ? 'Minimize' : 'Maximize'}>{modalMaximized ? <MdFullscreenExit /> : <MdFullscreen />}</button>
+                <button className={styles.formCloseBtn} onClick={() => setConfirmSaveOpen(false)}><MdClose /></button>
+              </div>
             </div>
             <div className={styles.modalBody}>
               <p style={{ fontSize: 14, color: 'var(--gray-700)', margin: 0 }}>Are you sure you want to save this purchase?</p>
