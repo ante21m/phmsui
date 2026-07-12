@@ -749,6 +749,10 @@ export const drugApi = createApi({
       query: ({ id, ...body }) => ({ url: `/drug-purchases/items/${id}`, method: 'PATCH', body }),
       invalidatesTags: ['DrugPurchase', 'DrugStock'],
     }),
+    deleteDrugPurchaseItem: builder.mutation<void, string>({
+      query: (id) => ({ url: `/drug-purchases/items/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['DrugPurchase', 'DrugStock'],
+    }),
     getPurchases: builder.query<{ data: DrugPurchase[]; total: number }, void>({
       query: () => '/drug-purchases?take=100',
       providesTags: ['DrugPurchase'],
@@ -1005,6 +1009,14 @@ export const drugApi = createApi({
         return items;
       },
     }),
+    deleteItemPurchaseItem: builder.mutation<void, string>({
+      query: (id) => ({ url: `/item-purchases/items/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['ItemPurchase'],
+    }),
+    updateItemPurchaseItem: builder.mutation<ItemPurchaseItem, { id: string } & Partial<CreateItemPurchaseItem>>({
+      query: ({ id, ...body }) => ({ url: `/item-purchases/items/${id}`, method: 'PATCH', body }),
+      invalidatesTags: ['ItemPurchase'],
+    }),
 
     // ─── Item Dispatches ───
     dispatchItem: builder.mutation<ItemDispatch, CreateItemDispatch>({
@@ -1174,6 +1186,7 @@ export const {
   useGetDrugFormsQuery,
   useSavePurchaseMutation,
   useUpdateDrugPurchaseItemMutation,
+  useDeleteDrugPurchaseItemMutation,
   useGetPurchasesQuery,
   useGetDrugStocksQuery,
   useGetPurchaseQuery,
@@ -1222,6 +1235,8 @@ export const {
   useSaveItemPurchaseMutation,
   useGetItemPurchasesQuery,
   useGetItemStocksQuery,
+  useDeleteItemPurchaseItemMutation,
+  useUpdateItemPurchaseItemMutation,
   useDispatchItemMutation,
   useGetDispatchedItemsQuery,
   useConfirmItemDispatchMutation,

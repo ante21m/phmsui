@@ -8,6 +8,7 @@ import {
   useGetDrugsQuery,
   useSavePurchaseMutation,
   useUpdateDrugPurchaseItemMutation,
+  useDeleteDrugPurchaseItemMutation,
   useGetDrugStocksQuery,
   useDispatchDrugMutation,
   useGetDispatchedDrugsQuery,
@@ -74,6 +75,7 @@ export default function PurchasedDrugsPage() {
   const { data: users = [] } = useGetUsersQuery();
   const [savePurchase] = useSavePurchaseMutation();
   const [updateDrugPurchaseItem] = useUpdateDrugPurchaseItemMutation();
+  const [deleteDrugPurchaseItem] = useDeleteDrugPurchaseItemMutation();
   const [dispatchDrug] = useDispatchDrugMutation();
   const { data: suppliers = [] } = useGetSuppliersQuery();
   const [createSupplier] = useCreateSupplierMutation();
@@ -101,7 +103,7 @@ export default function PurchasedDrugsPage() {
   };
 
   const [editStockId, setEditStockId] = useState<string | null>(null);
-  const [editStockForm, setEditStockForm] = useState({ batchNo: '', expiryDate: '', qtyRemaining: 0, purchasePrice: 0, salePrice: 0 });
+  const [editStockForm, setEditStockForm] = useState({ batchNo: '', expiryDate: '', quantity: '' as string | number, purchasePrice: 0 as string | number, salePrice: 0 as string | number });
   const [selectedStockIds, setSelectedStockIds] = useState<Set<string>>(new Set());
   const [viewingDispatch, setViewingDispatch] = useState<any | null>(null);
   const [drugSearch, setDrugSearch] = useState('');
@@ -140,7 +142,7 @@ export default function PurchasedDrugsPage() {
 
   const openEditStock = (s: DrugPurchaseItem) => {
     setEditStockId(s.id);
-    setEditStockForm({ batchNo: s.batchNo || '', expiryDate: s.expiryDate || '', qtyRemaining: s.qtyRemaining, purchasePrice: Number(s.purchasePrice), salePrice: Number(s.salePrice) });
+    setEditStockForm({ batchNo: s.batchNo || '', expiryDate: s.expiryDate || '', quantity: s.quantity, purchasePrice: Number(s.purchasePrice ?? 0), salePrice: Number(s.salePrice ?? 0) });
   };
 
   const saveEditStock = async (s: DrugPurchaseItem) => {
@@ -148,8 +150,9 @@ export default function PurchasedDrugsPage() {
       const body: Partial<CreateDrugPurchaseItem> & { id: string } = { id: s.id };
       if (editStockForm.batchNo !== (s.batchNo || '')) body.batchNo = editStockForm.batchNo || undefined;
       if (editStockForm.expiryDate !== (s.expiryDate || '')) body.expiryDate = editStockForm.expiryDate || undefined;
-      if (editStockForm.purchasePrice !== Number(s.purchasePrice)) body.purchasePrice = editStockForm.purchasePrice;
-      if (editStockForm.salePrice !== Number(s.salePrice)) body.salePrice = editStockForm.salePrice;
+      if (Number(editStockForm.quantity) !== s.quantity) body.quantity = Number(editStockForm.quantity);
+      if (Number(editStockForm.purchasePrice) !== Number(s.purchasePrice ?? 0)) body.purchasePrice = Number(editStockForm.purchasePrice);
+      if (Number(editStockForm.salePrice) !== Number(s.salePrice ?? 0)) body.salePrice = Number(editStockForm.salePrice);
       await updateDrugPurchaseItem(body).unwrap();
       toast.success('Stock updated successfully');
       setEditStockId(null);
@@ -157,6 +160,18 @@ export default function PurchasedDrugsPage() {
       const msg = err && typeof err === 'object' && 'data' in err
         ? JSON.stringify((err as { data: unknown }).data)
         : 'Failed to update stock';
+      toast.error(msg);
+    }
+  };
+
+  const handleDeleteStock = async (id: string) => {
+    try {
+      await deleteDrugPurchaseItem(id).unwrap();
+      toast.success('Stock item deleted');
+    } catch (err: unknown) {
+      const msg = err && typeof err === 'object' && 'data' in err
+        ? JSON.stringify((err as { data: unknown }).data)
+        : 'Failed to delete stock item';
       toast.error(msg);
     }
   };
@@ -194,13 +209,13 @@ export default function PurchasedDrugsPage() {
 
   const lastRow = items[items.length - 1];
   useEffect(() => {
-    if (lastRow && lastRow.drugId && lastRow.quantity > 0 && Number(lastRow.purchasePrice) > 0 && Number(lastRow.salePrice) > 0) {
+    if (lastRow && lastRow.drugId && Number(lastRow.quantity) > 0 && Number(lastRow.purchasePrice ?? 0) > 0 && Number(lastRow.salePrice ?? 0) > 0) {
       setItems(prev => [...prev, emptyItem()]);
     }
   }, [lastRow]);
 
-  const totalQty = items.reduce((s, it) => s + Number(it.quantity), 0);
-  const totalAmt = items.reduce((s, it) => s + Number(it.purchasePrice) * Number(it.quantity), 0);
+  const totalQty = items.reduce((s, it) => s + Number(it.quantity ?? 0), 0);
+  const totalAmt = items.reduce((s, it) => s + Number(it.purchasePrice ?? 0) * Number(it.quantity ?? 0), 0);
 
   const dispatchedEnriched = useMemo(() => (dispatched as DrugDispatch[]).map(d => {
     const by = userMap[d.dispatchedBy ?? ''];
@@ -215,7 +230,7 @@ export default function PurchasedDrugsPage() {
       _dispatchedBy: by ? `${by.firstName} ${by.fatherName}` : 'Unknown',
       _dispatchedTo: toUser ? `${toUser.firstName} ${toUser.fatherName}` : 'Unknown',
       _drugName: drugName,
-      _qtyDispatched: d.items?.reduce((s: number, it: any) => s + Number(it.quantity), 0) || 0,
+      _qtyDispatched: d.items?.reduce((s: number, it: any) => s + Number(it.quantity ?? 0), 0) || 0,
     };
   }), [dispatched, userMap, stocks]);
 
@@ -246,8 +261,8 @@ export default function PurchasedDrugsPage() {
     const filled = items.filter(it => it.drugId);
     if (filled.length === 0) { toast.error('Add at least one item'); return; }
     if (filled.some((it) => it.quantity < 1)) { toast.error('Quantity must be at least 1 for all rows'); return; }
-    if (filled.some((it) => Number(it.purchasePrice) <= 0)) { toast.error('Purchase price must be greater than 0'); return; }
-    if (filled.some((it) => Number(it.salePrice) <= 0)) { toast.error('Sale price must be greater than 0'); return; }
+    if (filled.some((it) => Number(it.purchasePrice ?? 0) <= 0)) { toast.error('Purchase price must be greater than 0'); return; }
+    if (filled.some((it) => Number(it.salePrice ?? 0) <= 0)) { toast.error('Sale price must be greater than 0'); return; }
     try {
       await savePurchase({
         invoiceNo,
@@ -258,8 +273,8 @@ export default function PurchasedDrugsPage() {
           drugName: it.drugName,
           uom: it.uom,
           quantity: it.quantity,
-          purchasePrice: Number(it.purchasePrice),
-          salePrice: Number(it.salePrice),
+          purchasePrice: Number(it.purchasePrice ?? 0),
+          salePrice: Number(it.salePrice ?? 0),
           batchNo: it.batchNo || undefined,
           expiryDate: it.expiryDate || undefined,
           qtyRemaining: it.quantity,
@@ -462,7 +477,7 @@ export default function PurchasedDrugsPage() {
                     <td><TextField value={item.quantity || ''} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value) || 0)} placeholder="1" /></td>
                     <td><TextField value={item.purchasePrice === 0 ? '' : String(item.purchasePrice)} onChange={(e) => updateItem(i, 'purchasePrice', e.target.value)} placeholder="0.00" /></td>
                     <td><TextField value={item.salePrice === 0 ? '' : String(item.salePrice)} onChange={(e) => updateItem(i, 'salePrice', e.target.value)} placeholder="0.00" /></td>
-                    <td className={styles.totalCell}>{(Number(item.quantity) * Number(item.purchasePrice)).toFixed(2)}</td>
+                    <td className={styles.totalCell}>{(Number(item.quantity ?? 0) * Number(item.purchasePrice ?? 0)).toFixed(2)}</td>
                     <td>
                       <button className={styles.rowDeleteBtn} onClick={() => removeRow(i)} disabled={items.length === 1} title="Remove row">
                         <MdDelete />
@@ -489,7 +504,7 @@ export default function PurchasedDrugsPage() {
 
           <div className={styles.saveWrap}>
             <button className={styles.saveBtn} onClick={() => {
-              const hasLossItem = items.some(it => it.drugId && Number(it.purchasePrice) > 0 && Number(it.salePrice) > 0 && Number(it.purchasePrice) > Number(it.salePrice));
+              const hasLossItem = items.some(it => it.drugId && Number(it.purchasePrice ?? 0) > 0 && Number(it.salePrice ?? 0) > 0 && Number(it.purchasePrice ?? 0) > Number(it.salePrice ?? 0));
               if (hasLossItem) {
                 setConfirmSaveOpen(true);
               } else {
@@ -570,15 +585,23 @@ export default function PurchasedDrugsPage() {
                       ? <TextField type="date" value={editStockForm.expiryDate} onChange={(e) => setEditStockForm(p => ({ ...p, expiryDate: e.target.value }))} />
                       : (row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : '—'),
                   },
-                  { accessor: 'quantity' as keyof DrugPurchaseItem, header: 'Qty', sortable: true, textAlign: 'right' },
+                  {
+                    accessor: 'quantity' as keyof DrugPurchaseItem,
+                    header: 'Qty',
+                    sortable: true,
+                    textAlign: 'right',
+                    render: (row) => editStockId === row.id
+                      ? <TextField type="number" value={String(editStockForm.quantity)} onChange={(e) => setEditStockForm(p => ({ ...p, quantity: e.target.value }))} />
+                      : row.quantity,
+                  },
                   {
                     accessor: 'purchasePrice' as keyof DrugPurchaseItem,
                     header: 'Purchase Price',
                     sortable: true,
                     textAlign: 'right',
                     render: (row) => editStockId === row.id
-                      ? <TextField type="number" step="0.01" value={editStockForm.purchasePrice} onChange={(e) => setEditStockForm(p => ({ ...p, purchasePrice: Number(e.target.value) }))} />
-                      : Number(row.purchasePrice).toFixed(2),
+                      ? <TextField type="number" step="0.01" value={String(editStockForm.purchasePrice)} onChange={(e) => setEditStockForm(p => ({ ...p, purchasePrice: e.target.value }))} />
+                      : Number(row.purchasePrice ?? 0).toFixed(2),
                   },
                   {
                     accessor: 'salePrice' as keyof DrugPurchaseItem,
@@ -586,13 +609,15 @@ export default function PurchasedDrugsPage() {
                     sortable: true,
                     textAlign: 'right',
                     render: (row) => editStockId === row.id
-                      ? <TextField type="number" step="0.01" value={editStockForm.salePrice} onChange={(e) => setEditStockForm(p => ({ ...p, salePrice: Number(e.target.value) }))} />
-                      : Number(row.salePrice).toFixed(2),
+                      ? <TextField type="number" step="0.01" value={String(editStockForm.salePrice)} onChange={(e) => setEditStockForm(p => ({ ...p, salePrice: e.target.value }))} />
+                      : Number(row.salePrice ?? 0).toFixed(2),
                   },
                   {
                     header: 'Total Price',
                     textAlign: 'right',
-                    render: (row) => (Number(row.purchasePrice) * Number(row.quantity)).toFixed(2),
+                    render: (row) => editStockId === row.id
+                      ? (Number(editStockForm.purchasePrice) * Number(editStockForm.quantity)).toFixed(2)
+                      : (Number(row.purchasePrice ?? 0) * Number(row.quantity ?? 0)).toFixed(2),
                   },
                   {
                     header: 'Actions',
@@ -606,6 +631,7 @@ export default function PurchasedDrugsPage() {
                       <span className={styles.actionBtns}>
                         <button className={styles.actionEdit} onClick={(e) => { e.stopPropagation(); openEditStock(row); }} title="Edit"><MdEdit /></button>
                         <button className={styles.actionDispatch} onClick={(e) => { e.stopPropagation(); stockDispatch(row); }} title="Dispatch"><MdLocalShipping /></button>
+                        <button className={styles.rowDeleteBtn} onClick={(e) => { e.stopPropagation(); if (window.confirm('Delete this stock item?')) handleDeleteStock(row.id); }} title="Delete"><MdDelete /></button>
                       </span>
                     ),
                   },
@@ -624,7 +650,7 @@ export default function PurchasedDrugsPage() {
               />
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
                 <div style={{ background: '#1a73e8', color: '#fff', padding: '8px 24px', borderRadius: 6, fontWeight: 700, fontSize: 15, letterSpacing: 0.5 }}>
-                  Grand Total Purchased: {visibleStocks.reduce((s, it) => s + Number(it.quantity), 0)} items | {visibleStocks.reduce((s, it) => s + Number(it.purchasePrice) * Number(it.quantity), 0).toFixed(2)}
+                  Grand Total Purchased: {stocks.reduce((s, it) => s + Number(it.quantity ?? 0), 0)} items | {stocks.reduce((s, it) => s + Number(it.purchasePrice ?? 0) * Number(it.quantity ?? 0), 0).toFixed(2)}
                 </div>
               </div>
             </>
@@ -774,7 +800,7 @@ export default function PurchasedDrugsPage() {
                           { header: 'Batch No', accessor: '_stock.batchNo' as any, render: (r: any) => r._stock?.batchNo || '—', sortable: true },
                           { header: 'Expiry', render: (r: any) => r._stock?.expiryDate ? new Date(r._stock.expiryDate).toLocaleDateString() : '—', sortable: true },
                           { header: 'Stock Qty', accessor: '_stock.quantity' as any, render: (r: any) => r._stock?.quantity ?? '—', textAlign: 'right' },
-                          { header: 'Dispatch Qty', accessor: 'quantity' as any, render: (r: any) => Number(r.quantity), textAlign: 'right' },
+                          { header: 'Dispatch Qty', accessor: 'quantity' as any, render: (r: any) => Number(r.quantity ?? 0), textAlign: 'right' },
                           { header: 'Purchase Price', render: (r: any) => r._stock?.purchasePrice != null ? Number(r._stock.purchasePrice).toLocaleString() : '—' },
                           { header: 'Sale Price', render: (r: any) => r._stock?.salePrice != null ? Number(r._stock.salePrice).toLocaleString() : '—' },
                           { header: 'Qty Remaining', render: (r: any) => r.currentQty ?? '—', textAlign: 'right', sortable: true },
@@ -805,7 +831,7 @@ export default function PurchasedDrugsPage() {
             </div>
             <div className={styles.modalBody}>
               <p style={{ fontSize: 14, color: 'var(--gray-700)', margin: 0 }}>Are you sure you want to save this purchase?</p>
-              {items.some(it => it.drugId && Number(it.purchasePrice) > 0 && Number(it.salePrice) > 0 && Number(it.purchasePrice) > Number(it.salePrice)) && (
+              {items.some(it => it.drugId && Number(it.purchasePrice ?? 0) > 0 && Number(it.salePrice ?? 0) > 0 && Number(it.purchasePrice ?? 0) > Number(it.salePrice ?? 0)) && (
                 <p style={{ fontSize: 13, color: '#d97706', margin: '8px 0 0', padding: '8px 12px', background: '#fffbeb', borderRadius: 6, border: '1px solid #fde68a' }}>
                   ⚠ The sale price is lower than the purchase price. Selling this item at the current price will result in a loss.
                 </p>

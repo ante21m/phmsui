@@ -8,6 +8,8 @@ import {
   useGetItemsQuery,
   useSaveItemPurchaseMutation,
   useGetItemStocksQuery,
+  useDeleteItemPurchaseItemMutation,
+  useUpdateItemPurchaseItemMutation,
   useDispatchItemMutation,
   useGetDispatchedItemsQuery,
   useGetUserDetailQuery,
@@ -16,6 +18,7 @@ import {
   useCreateSupplierMutation,
   ItemMaster,
   ItemPurchaseItem,
+  CreateItemPurchaseItem,
   ItemDispatch,
   UserDetail,
   Supplier,
@@ -73,6 +76,8 @@ export default function PurchasedItemsPage() {
   const { data: users = [] } = useGetUsersQuery();
   const [savePurchase] = useSaveItemPurchaseMutation();
   const [dispatchItem] = useDispatchItemMutation();
+  const [deleteItemPurchaseItem] = useDeleteItemPurchaseItemMutation();
+  const [updateItemPurchaseItem] = useUpdateItemPurchaseItemMutation();
   const { data: suppliers = [] } = useGetSuppliersQuery();
   const [createSupplier] = useCreateSupplierMutation();
 
@@ -100,7 +105,7 @@ export default function PurchasedItemsPage() {
   };
 
   const [editStockId, setEditStockId] = useState<string | null>(null);
-  const [editStockForm, setEditStockForm] = useState({ batchNo: '', expiryDate: '', qtyRemaining: 0, purchasePrice: 0, salePrice: 0 });
+  const [editStockForm, setEditStockForm] = useState({ batchNo: '', expiryDate: '', quantity: '' as string | number, purchasePrice: 0 as string | number, salePrice: 0 as string | number });
   const [selectedStockIds, setSelectedStockIds] = useState<Set<string>>(new Set());
   const [viewingDispatch, setViewingDispatch] = useState<any | null>(null);
   const [stockSearch, setStockSearch] = useState('');
@@ -236,12 +241,38 @@ export default function PurchasedItemsPage() {
 
   const openEditStock = (s: ItemPurchaseItem) => {
     setEditStockId(s.id);
-    setEditStockForm({ batchNo: s.batchNo || '', expiryDate: s.expiryDate || '', qtyRemaining: s.qtyRemaining, purchasePrice: Number(s.purchasePrice), salePrice: Number(s.salePrice) });
+    setEditStockForm({ batchNo: s.batchNo || '', expiryDate: s.expiryDate || '', quantity: s.quantity, purchasePrice: Number(s.purchasePrice ?? 0), salePrice: Number(s.salePrice ?? 0) });
   };
 
   const saveEditStock = async (s: ItemPurchaseItem) => {
-    toast.success('Stock updated (UI only)');
-    setEditStockId(null);
+    try {
+      const body: Partial<CreateItemPurchaseItem> & { id: string } = { id: s.id };
+      if (editStockForm.batchNo !== (s.batchNo || '')) body.batchNo = editStockForm.batchNo || undefined;
+      if (editStockForm.expiryDate !== (s.expiryDate || '')) body.expiryDate = editStockForm.expiryDate || undefined;
+      if (Number(editStockForm.quantity) !== s.quantity) body.quantity = Number(editStockForm.quantity);
+      if (Number(editStockForm.purchasePrice) !== Number(s.purchasePrice ?? 0)) body.purchasePrice = Number(editStockForm.purchasePrice);
+      if (Number(editStockForm.salePrice) !== Number(s.salePrice ?? 0)) body.salePrice = Number(editStockForm.salePrice);
+      await updateItemPurchaseItem(body).unwrap();
+      toast.success('Stock updated successfully');
+      setEditStockId(null);
+    } catch (err: unknown) {
+      const msg = err && typeof err === 'object' && 'data' in err
+        ? JSON.stringify((err as { data: unknown }).data)
+        : 'Failed to update stock';
+      toast.error(msg);
+    }
+  };
+
+  const handleDeleteItemStock = async (id: string) => {
+    try {
+      await deleteItemPurchaseItem(id).unwrap();
+      toast.success('Stock item deleted');
+    } catch (err: unknown) {
+      const msg = err && typeof err === 'object' && 'data' in err
+        ? JSON.stringify((err as { data: unknown }).data)
+        : 'Failed to delete stock item';
+      toast.error(msg);
+    }
   };
 
   // Register form state
@@ -314,21 +345,21 @@ export default function PurchasedItemsPage() {
 
   const lastRow = formItems[formItems.length - 1];
   useEffect(() => {
-    if (lastRow && lastRow.itemId && lastRow.quantity > 0 && Number(lastRow.purchasePrice) > 0 && Number(lastRow.salePrice) > 0) {
+    if (lastRow && lastRow.itemId && Number(lastRow.quantity) > 0 && Number(lastRow.purchasePrice ?? 0) > 0 && Number(lastRow.salePrice ?? 0) > 0) {
       setFormItems(prev => [...prev, emptyItem()]);
     }
   }, [lastRow]);
 
-  const totalQty = formItems.reduce((s, it) => s + Number(it.quantity), 0);
-  const totalAmt = formItems.reduce((s, it) => s + Number(it.purchasePrice) * Number(it.quantity), 0);
+  const totalQty = formItems.reduce((s, it) => s + Number(it.quantity ?? 0), 0);
+  const totalAmt = formItems.reduce((s, it) => s + Number(it.purchasePrice ?? 0) * Number(it.quantity ?? 0), 0);
 
   const handleSavePurchase = async () => {
     if (!invoiceNo) { toast.error('Invoice number is required'); return; }
     const filled = formItems.filter(it => it.itemId);
     if (filled.length === 0) { toast.error('Add at least one item'); return; }
     if (filled.some((it) => it.quantity < 1)) { toast.error('Quantity must be at least 1 for all rows'); return; }
-    if (filled.some((it) => Number(it.purchasePrice) <= 0)) { toast.error('Purchase price must be greater than 0'); return; }
-    if (filled.some((it) => Number(it.salePrice) <= 0)) { toast.error('Sale price must be greater than 0'); return; }
+    if (filled.some((it) => Number(it.purchasePrice ?? 0) <= 0)) { toast.error('Purchase price must be greater than 0'); return; }
+    if (filled.some((it) => Number(it.salePrice ?? 0) <= 0)) { toast.error('Sale price must be greater than 0'); return; }
     try {
       await savePurchase({
         invoiceNo,
@@ -340,8 +371,8 @@ export default function PurchasedItemsPage() {
           itemName: it.itemName,
           uom: it.uom,
           quantity: it.quantity,
-          purchasePrice: Number(it.purchasePrice),
-          salePrice: Number(it.salePrice),
+          purchasePrice: Number(it.purchasePrice ?? 0),
+          salePrice: Number(it.salePrice ?? 0),
           batchNo: it.batchNo || undefined,
           expiryDate: it.expiryDate || undefined,
           qtyRemaining: it.quantity,
@@ -553,7 +584,7 @@ export default function PurchasedItemsPage() {
                     <td><TextField value={item.quantity || ''} onChange={(e) => updateItem(i, 'quantity', Number(e.target.value) || 0)} placeholder="1" /></td>
                     <td><TextField value={item.purchasePrice === 0 ? '' : String(item.purchasePrice)} onChange={(e) => updateItem(i, 'purchasePrice', e.target.value)} placeholder="0.00" /></td>
                     <td><TextField value={item.salePrice === 0 ? '' : String(item.salePrice)} onChange={(e) => updateItem(i, 'salePrice', e.target.value)} placeholder="0.00" /></td>
-                    <td className={styles.totalCell}>{(Number(item.quantity) * Number(item.purchasePrice)).toFixed(2)}</td>
+                    <td className={styles.totalCell}>{(Number(item.quantity ?? 0) * Number(item.purchasePrice ?? 0)).toFixed(2)}</td>
                     <td>
                       <button className={styles.rowDeleteBtn} onClick={() => removeRow(i)} disabled={formItems.length === 1} title="Remove row">
                         <MdDelete />
@@ -580,7 +611,7 @@ export default function PurchasedItemsPage() {
 
           <div className={styles.saveWrap}>
             <button className={styles.saveBtn} onClick={() => {
-              const hasLossItem = formItems.some(it => it.itemId && Number(it.purchasePrice) > 0 && Number(it.salePrice) > 0 && Number(it.purchasePrice) > Number(it.salePrice));
+              const hasLossItem = formItems.some(it => it.itemId && Number(it.purchasePrice ?? 0) > 0 && Number(it.salePrice ?? 0) > 0 && Number(it.purchasePrice ?? 0) > Number(it.salePrice ?? 0));
               if (hasLossItem) {
                 setConfirmSaveOpen(true);
               } else {
@@ -719,10 +750,10 @@ export default function PurchasedItemsPage() {
                           <>
                             <td><input type="text" value={editStockForm.batchNo} onChange={(e) => setEditStockForm(p => ({ ...p, batchNo: e.target.value }))} /></td>
                             <td><input type="date" value={editStockForm.expiryDate} onChange={(e) => setEditStockForm(p => ({ ...p, expiryDate: e.target.value }))} /></td>
-                            <td>{s.quantity}</td>
-                            <td><input type="number" step="0.01" value={editStockForm.purchasePrice} onChange={(e) => setEditStockForm(p => ({ ...p, purchasePrice: Number(e.target.value) }))} /></td>
-                            <td><input type="number" step="0.01" value={editStockForm.salePrice} onChange={(e) => setEditStockForm(p => ({ ...p, salePrice: Number(e.target.value) }))} /></td>
-                            <td>{(Number(s.purchasePrice) * Number(s.quantity)).toFixed(2)}</td>
+                            <td><input type="number" value={String(editStockForm.quantity)} onChange={(e) => setEditStockForm(p => ({ ...p, quantity: e.target.value }))} /></td>
+                            <td><input type="number" step="0.01" value={String(editStockForm.purchasePrice)} onChange={(e) => setEditStockForm(p => ({ ...p, purchasePrice: e.target.value }))} /></td>
+                            <td><input type="number" step="0.01" value={String(editStockForm.salePrice)} onChange={(e) => setEditStockForm(p => ({ ...p, salePrice: e.target.value }))} /></td>
+                            <td>{(Number(editStockForm.purchasePrice) * Number(editStockForm.quantity)).toFixed(2)}</td>
                             <td>
                               <span className={styles.actionBtns}>
                                 <button className={styles.editSaveBtn} onClick={() => saveEditStock(s)} title="Save"><MdSave /></button>
@@ -735,13 +766,14 @@ export default function PurchasedItemsPage() {
                             <td>{s.batchNo || '—'}</td>
                             <td>{s.expiryDate ? new Date(s.expiryDate).toLocaleDateString() : '—'}</td>
                             <td>{s.quantity}</td>
-                            <td>{Number(s.purchasePrice).toFixed(2)}</td>
-                            <td>{Number(s.salePrice).toFixed(2)}</td>
-                            <td>{(Number(s.purchasePrice) * Number(s.quantity)).toFixed(2)}</td>
+                            <td>{Number(s.purchasePrice ?? 0).toFixed(2)}</td>
+                            <td>{Number(s.salePrice ?? 0).toFixed(2)}</td>
+                            <td>{(Number(s.purchasePrice ?? 0) * Number(s.quantity ?? 0)).toFixed(2)}</td>
                             <td>
                               <span className={styles.actionBtns}>
                                 <button className={styles.actionEdit} onClick={() => openEditStock(s)} title="Edit"><MdEdit /></button>
                                 <button className={styles.actionDispatch} onClick={() => stockDispatch(s)} title="Dispatch"><MdLocalShipping /></button>
+                                <button className={styles.rowDeleteBtn} onClick={() => { if (window.confirm('Delete this stock item?')) handleDeleteItemStock(s.id); }} title="Delete"><MdDelete /></button>
                               </span>
                             </td>
                           </>
@@ -777,7 +809,7 @@ export default function PurchasedItemsPage() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
                     <div style={{ background: '#1a73e8', color: '#fff', padding: '8px 24px', borderRadius: 6, fontWeight: 700, fontSize: 15, letterSpacing: 0.5 }}>
-                      Grand Total Purchased: {sortedFilteredStocks.reduce((s, it) => s + Number(it.quantity), 0)} items | {sortedFilteredStocks.reduce((s, it) => s + Number(it.purchasePrice) * Number(it.quantity), 0).toFixed(2)}
+                      Grand Total Purchased: {stocks.reduce((s, it) => s + Number(it.quantity ?? 0), 0)} items | {stocks.reduce((s, it) => s + Number(it.purchasePrice ?? 0) * Number(it.quantity ?? 0), 0).toFixed(2)}
                     </div>
                   </div>
                 </>
@@ -955,7 +987,7 @@ export default function PurchasedItemsPage() {
             </div>
             <div className={styles.modalBody}>
               <p style={{ fontSize: 14, color: 'var(--gray-700)', margin: 0 }}>Are you sure you want to save this purchase?</p>
-              {formItems.some(it => it.itemId && Number(it.purchasePrice) > 0 && Number(it.salePrice) > 0 && Number(it.purchasePrice) > Number(it.salePrice)) && (
+              {formItems.some(it => it.itemId && Number(it.purchasePrice ?? 0) > 0 && Number(it.salePrice ?? 0) > 0 && Number(it.purchasePrice ?? 0) > Number(it.salePrice ?? 0)) && (
                 <p style={{ fontSize: 13, color: '#d97706', margin: '8px 0 0', padding: '8px 12px', background: '#fffbeb', borderRadius: 6, border: '1px solid #fde68a' }}>
                   ⚠ The sale price is lower than the purchase price. Selling this item at the current price will result in a loss.
                 </p>

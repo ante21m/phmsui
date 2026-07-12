@@ -9,7 +9,20 @@ import styles from './LowStock.module.css';
 export default function LowStockPage() {
   const { data, isLoading } = useGetLowStockDrugsQuery();
   const rawItems = data?.data ?? [];
-  const items = useMemo(() => (rawItems as LowStockItem[]).filter(i => i.qtyRemaining >= 0), [rawItems]);
+  const items = useMemo(() => {
+    const map = new Map<string, LowStockItem>();
+    for (const item of (rawItems as LowStockItem[])) {
+      if (item.qtyRemaining < 0) continue;
+      const key = `${item.type}-${item.name}`;
+      const existing = map.get(key);
+      if (existing) {
+        existing.qtyRemaining += item.qtyRemaining;
+      } else {
+        map.set(key, { ...item });
+      }
+    }
+    return Array.from(map.values());
+  }, [rawItems]);
   const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
 
   const toggleSelect = (name: string) => {
