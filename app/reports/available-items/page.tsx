@@ -24,6 +24,8 @@ export default function AvailableItemsReport() {
   }, [data]);
 
   const grandTotal = data?.grandTotalCost ?? 0;
+  const grandTotalSale = data?.grandTotalSaleValue ?? 0;
+  const profit = grandTotalSale - grandTotal;
 
   const columns = useMemo<SmartColumn<AvailableItemSummary & { _type: string }>[]>(
     () => [
@@ -32,7 +34,9 @@ export default function AvailableItemsReport() {
       { accessor: 'batchNo', header: 'Batch No', sortable: true, render: (row) => row.batchNo || '—' },
       { accessor: 'qtyRemaining', header: 'Qty', sortable: true, render: (row) => row.qtyRemaining.toLocaleString() },
       { accessor: 'purchasePrice', header: 'Purchase Price', sortable: true, render: (row) => row.purchasePrice.toFixed(2) },
-      { accessor: 'rowTotal', header: 'Total Price', sortable: true, render: (row) => row.rowTotal.toFixed(2) },
+      { accessor: 'salePrice', header: 'Sale Price', sortable: true, render: (row) => row.salePrice.toFixed(2) },
+      { accessor: 'purchaseRowTotal', header: 'Total Purchase', sortable: true, render: (row) => row.purchaseRowTotal.toFixed(2) },
+      { accessor: 'saleRowTotal', header: 'Total Sale', sortable: true, render: (row) => row.saleRowTotal.toFixed(2) },
     ],
     []
   );
@@ -40,8 +44,8 @@ export default function AvailableItemsReport() {
   const handlePdf = () => {
     exportPdf(
       'Available Items',
-      ['Name', 'Type', 'Batch No', 'Qty', 'Purchase Price', 'Total Price'],
-      rows.map((r) => [r.name, r._type, r.batchNo || '', r.qtyRemaining, r.purchasePrice.toFixed(2), r.rowTotal.toFixed(2)]),
+      ['Name', 'Type', 'Batch No', 'Qty', 'Purchase Price', 'Sale Price', 'Total Purchase', 'Total Sale'],
+      rows.map((r) => [r.name, r._type, r.batchNo || '', r.qtyRemaining, r.purchasePrice.toFixed(2), r.salePrice.toFixed(2), r.purchaseRowTotal.toFixed(2), r.saleRowTotal.toFixed(2)]),
       'available-items'
     );
   };
@@ -59,7 +63,7 @@ export default function AvailableItemsReport() {
         <div className={styles.actionGroup}>
           <button className={styles.filterBtn} onClick={applyFilter} title="Search"><MdSearch /></button>
           <button className={`${styles.actionBtnInline} ${styles.actionBtnPdf}`} onClick={handlePdf} title="Export PDF"><MdPictureAsPdf /></button>
-          <button className={styles.actionBtnInline} onClick={() => printTable('Available Items', ['Name', 'Type', 'Batch No', 'Qty', 'Purchase Price', 'Total Price'], rows.map(r => [r.name, r._type, r.batchNo || '', r.qtyRemaining.toLocaleString(), r.purchasePrice.toFixed(2), r.rowTotal.toFixed(2)]))} title="Print"><MdPrint /></button>
+          <button className={styles.actionBtnInline} onClick={() => printTable('Available Items', ['Name', 'Type', 'Batch No', 'Qty', 'Purchase Price', 'Sale Price', 'Total Purchase', 'Total Sale'], rows.map(r => [r.name, r._type, r.batchNo || '', r.qtyRemaining.toLocaleString(), r.purchasePrice.toFixed(2), r.salePrice.toFixed(2), r.purchaseRowTotal.toFixed(2), r.saleRowTotal.toFixed(2)]))} title="Print"><MdPrint /></button>
         </div>
       </div>
       <SmartTable
@@ -75,7 +79,13 @@ export default function AvailableItemsReport() {
       />
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
         <div style={{ background: '#1a73e8', color: '#fff', padding: '10px 28px', borderRadius: 8, fontWeight: 700, fontSize: 17, letterSpacing: 0.5 }}>
-          Grand Total: {grandTotal.toFixed(2)}
+          Total Purchase Cost: {grandTotal.toFixed(2)}
+        </div>
+        <div style={{ background: '#059669', color: '#fff', padding: '10px 28px', borderRadius: 8, fontWeight: 700, fontSize: 17, letterSpacing: 0.5, marginLeft: 8 }}>
+          Total Sale Cost: {grandTotalSale.toFixed(2)}
+        </div>
+        <div style={{ background: profit >= 0 ? '#2563eb' : '#dc2626', color: '#fff', padding: '10px 28px', borderRadius: 8, fontWeight: 700, fontSize: 17, letterSpacing: 0.5, marginLeft: 8 }}>
+          Profit: {profit.toFixed(2)}
         </div>
       </div>
     </div>

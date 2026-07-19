@@ -574,15 +574,20 @@ export interface AvailableItemSummary {
   quantity: number;
   qtyRemaining: number;
   purchasePrice: number;
-  rowTotal: number;
+  salePrice: number;
+  purchaseRowTotal: number;
+  saleRowTotal: number;
 }
 
 export interface AvailableItemsSummaryResponse {
   drugs: AvailableItemSummary[];
   nonDrugs: AvailableItemSummary[];
   drugsTotalCost: number;
+  drugsTotalSaleValue: number;
   nonDrugsTotalCost: number;
+  nonDrugsTotalSaleValue: number;
   grandTotalCost: number;
+  grandTotalSaleValue: number;
 }
 
 export interface AvailableItem {

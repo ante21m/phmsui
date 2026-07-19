@@ -131,13 +131,13 @@ export default function PurchasedDrugsPage() {
   const dispatchSelected = () => {
     const selected = visibleStocks.filter((s: DrugPurchaseItem) => selectedStockIds.has(s.id));
     if (selected.length === 0) { toast.error('No stock items selected'); return; }
-    setDispatchItems(selected.map(s => ({ purchaseItemId: s.id, purchaseItemLabel: `${s.drugName} (${s.batchNo || 'N/A'})`, quantity: 0, currentQty: s.qtyRemaining })));
+    setDispatchItems(selected.map(s => ({ purchaseItemId: s.id, purchaseItemLabel: `${s.drugName} (${s.batchNo || 'N/A'})`, quantity: s.qtyRemaining, currentQty: s.qtyRemaining })));
     setSelectedStockIds(new Set());
     setTab('dispatch');
   };
 
   const stockDispatch = (s: DrugPurchaseItem) => {
-    setDispatchItems([{ purchaseItemId: s.id, purchaseItemLabel: `${s.drugName} (${s.batchNo || 'N/A'})`, quantity: 0, currentQty: s.qtyRemaining }]);
+    setDispatchItems([{ purchaseItemId: s.id, purchaseItemLabel: `${s.drugName} (${s.batchNo || 'N/A'})`, quantity: s.qtyRemaining, currentQty: s.qtyRemaining }]);
     setTab('dispatch');
   };
 
