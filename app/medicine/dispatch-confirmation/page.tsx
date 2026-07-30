@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { MdSearch, MdPictureAsPdf, MdPrint, MdVisibility } from 'react-icons/md';
 import { SmartTable, type SmartColumn } from '@/components';
 import { useGetDispatchedDrugsQuery, DrugDispatch } from '@/store/services/drugApi';
@@ -11,27 +11,33 @@ export default function DispatchConfirmationPage() {
   const [tab, setTab] = useState<'waiting' | 'confirmed' | 'rejected'>('waiting');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [appliedFrom, setAppliedFrom] = useState('');
+  const [appliedTo, setAppliedTo] = useState('');
   const { data: dispatched = [], isLoading } = useGetDispatchedDrugsQuery();
-  const filterByDate = (list: DrugDispatch[]) => {
-    if (!dateFrom && !dateTo) return list;
+  const applyFilter = useCallback(() => {
+    setAppliedFrom(dateFrom);
+    setAppliedTo(dateTo);
+  }, [dateFrom, dateTo]);
+  const filterByDate = useCallback((list: DrugDispatch[]) => {
+    if (!appliedFrom && !appliedTo) return list;
     return list.filter((d) => {
       const dt = d.dispatchDate ? new Date(d.dispatchDate) : null;
-      if (!dt) return !dateFrom && !dateTo;
-      if (dateFrom && dt < new Date(dateFrom)) return false;
-      if (dateTo) {
-        const toEnd = new Date(dateTo);
+      if (!dt) return !appliedFrom && !appliedTo;
+      if (appliedFrom && dt < new Date(appliedFrom)) return false;
+      if (appliedTo) {
+        const toEnd = new Date(appliedTo);
         toEnd.setHours(23, 59, 59, 999);
         if (dt > toEnd) return false;
       }
       return true;
     });
-  };
+  }, [appliedFrom, appliedTo]);
 
-  const pending = filterByDate((dispatched as DrugDispatch[]).filter((d) => d.dispatchStatus === 'Pending'));
-  const confirmed = filterByDate((dispatched as DrugDispatch[]).filter((d) => d.dispatchStatus === 'Confirmed'));
-  const rejected = filterByDate((dispatched as DrugDispatch[]).filter((d) => d.dispatchStatus === 'Rejected'));
+  const pending = useMemo(() => filterByDate((dispatched as DrugDispatch[]).filter((d) => d.dispatchStatus === 'Pending')), [dispatched, filterByDate]);
+  const confirmed = useMemo(() => filterByDate((dispatched as DrugDispatch[]).filter((d) => d.dispatchStatus === 'Confirmed')), [dispatched, filterByDate]);
+  const rejected = useMemo(() => filterByDate((dispatched as DrugDispatch[]).filter((d) => d.dispatchStatus === 'Rejected')), [dispatched, filterByDate]);
 
-  const enrich = (list: DrugDispatch[]) => list.map(d => ({
+  const enrich = useCallback((list: DrugDispatch[]) => list.map(d => ({
     ...d,
     _drugName: (d.items || []).map(it => {
       const pi = it.purchaseItem;
@@ -39,11 +45,11 @@ export default function DispatchConfirmationPage() {
     }).filter(Boolean).join(', '),
     _qtyConfirmed: d.dispatchStatus === 'Confirmed' ? (d.items || []).reduce((s, it) => s + (it.currentQty ?? 0), 0) : null,
     _qtyRejected: d.dispatchStatus === 'Rejected' ? (d.items || []).reduce((s, it) => s + (it.quantity ?? 0) - (it.currentQty ?? 0), 0) : null,
-  }));
+  })), []);
 
-  const pendingE = useMemo(() => enrich(pending), [pending]);
-  const confirmedE = useMemo(() => enrich(confirmed), [confirmed]);
-  const rejectedE = useMemo(() => enrich(rejected), [rejected]);
+  const pendingE = useMemo(() => enrich(pending), [enrich, pending]);
+  const confirmedE = useMemo(() => enrich(confirmed), [enrich, confirmed]);
+  const rejectedE = useMemo(() => enrich(rejected), [enrich, rejected]);
 
   const columns = useMemo<SmartColumn<any>[]>(
     () => {
@@ -123,18 +129,14 @@ export default function DispatchConfirmationPage() {
         </button>
       </div>
 
-      <div className={styles.filterBar}>
-        <div className={styles.filterField}>
-          <label>From :</label>
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-        </div>
-        <div className={styles.filterField}>
-          <label>To :</label>
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-        </div>
-        <div className={styles.filterActions}>
-          <button className={`${styles.filterActionIcon} ${styles.filterApply}`} title="Apply"><MdSearch /></button>
-          <button className={`${styles.filterActionIcon} ${styles.filterPdf}`} onClick={() => {
+      <div className={styles.filters}>
+        <span className={styles.filterLabel}>From:</span>
+        <input type="date" className={styles.dateInput} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+        <span>to</span>
+        <input type="date" className={styles.dateInput} value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+        <div className={styles.actionGroup}>
+          <button className={styles.filterBtn} onClick={applyFilter} title="Search"><MdSearch /></button>
+          <button className={`${styles.actionBtnInline} ${styles.actionBtnPdf}`} onClick={() => {
             const data = tab === 'waiting' ? pendingE : tab === 'confirmed' ? confirmedE : rejectedE;
             const headers = tab === 'waiting' ? ['Drug Name', 'Dispatched By', 'Dispatched To', 'Items', 'Status', 'Dispatch Date']
               : tab === 'confirmed' ? ['Drug Name', 'Dispatched By', 'Dispatched To', 'Items', 'Qty Confirmed', 'Status', 'Dispatch Date']
@@ -154,8 +156,8 @@ export default function DispatchConfirmationPage() {
                   r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
                   r.dispatchedToUser ? `${r.dispatchedToUser.firstName} ${r.dispatchedToUser.fatherName}` : r.dispatchedTo || '—',
                   `${r.items?.length || 0} item(s)`, r._qtyRejected ?? '—', r.dispatchStatus, formatServerDate(r.dispatchDate)]));
-          }} title="PDF"><MdPictureAsPdf /></button>
-          <button className={`${styles.filterActionIcon} ${styles.filterPrint}`} onClick={() => {
+          }} title="Export PDF"><MdPictureAsPdf /></button>
+          <button className={styles.actionBtnInline} onClick={() => {
             const data = tab === 'waiting' ? pendingE : tab === 'confirmed' ? confirmedE : rejectedE;
             const headers = tab === 'waiting' ? ['Drug Name', 'Dispatched By', 'Dispatched To', 'Items', 'Status', 'Dispatch Date']
               : tab === 'confirmed' ? ['Drug Name', 'Dispatched By', 'Dispatched To', 'Items', 'Qty Confirmed', 'Status', 'Dispatch Date']

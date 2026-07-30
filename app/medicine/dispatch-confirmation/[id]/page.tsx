@@ -117,11 +117,10 @@ export default function DispatchDetailPage() {
               { header: 'Qty Remaining', render: (r: any) => r._stock?.qtyRemaining ?? '—', textAlign: 'center', sortable: true },
             ]}
             rowKey={(r: any) => r.id}
-            withSearch={false}
-            withPagination={enrichedItems.length > 10}
-            hideEntries
+            withSearch
+            withPagination
             withRowNumbers
-            classNames={{ pagination: styles.miniPagination, paginationInfo: styles.miniInfo }}
+            defaultPageSize={25}
           />
 
           {dispatch.dispatchStatus === 'Pending' && (
