@@ -55,10 +55,6 @@ export default function DispatchConfirmationPage() {
     () => {
       const cols: SmartColumn<any>[] = [
         {
-          header: 'Drug Name', sortable: true,
-          render: (row: any) => row._drugName || '—',
-        },
-        {
           accessor: 'dispatchedBy',
           header: 'Dispatched By',
           render: (row) => row.dispatchedByUser ? `${row.dispatchedByUser.firstName} ${row.dispatchedByUser.fatherName}` : row.dispatchedBy || '—',
@@ -138,43 +134,37 @@ export default function DispatchConfirmationPage() {
           <button className={styles.filterBtn} onClick={applyFilter} title="Search"><MdSearch /></button>
           <button className={`${styles.actionBtnInline} ${styles.actionBtnPdf}`} onClick={() => {
             const data = tab === 'waiting' ? pendingE : tab === 'confirmed' ? confirmedE : rejectedE;
-            const headers = tab === 'waiting' ? ['Drug Name', 'Dispatched By', 'Dispatched To', 'Items', 'Status', 'Dispatch Date']
-              : tab === 'confirmed' ? ['Drug Name', 'Dispatched By', 'Dispatched To', 'Items', 'Qty Confirmed', 'Status', 'Dispatch Date']
-              : ['Drug Name', 'Dispatched By', 'Dispatched To', 'Items', 'Qty Rejected', 'Status', 'Dispatch Date'];
+            const headers = tab === 'waiting' ? ['Dispatched By', 'Dispatched To', 'Items', 'Status', 'Dispatch Date']
+              : tab === 'confirmed' ? ['Dispatched By', 'Dispatched To', 'Items', 'Qty Confirmed', 'Status', 'Dispatch Date']
+              : ['Dispatched By', 'Dispatched To', 'Items', 'Qty Rejected', 'Status', 'Dispatch Date'];
             printTable('Drug Dispatch', headers,
               data.map((r: any) => tab === 'waiting'
-                ? [r._drugName || '—',
-                  r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
+                ? [r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
                   r.dispatchedToUser ? `${r.dispatchedToUser.firstName} ${r.dispatchedToUser.fatherName}` : r.dispatchedTo || '—',
                   `${r.items?.length || 0} item(s)`, r.dispatchStatus, formatServerDate(r.dispatchDate)]
                 : tab === 'confirmed'
-                ? [r._drugName || '—',
-                  r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
+                ? [r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
                   r.dispatchedToUser ? `${r.dispatchedToUser.firstName} ${r.dispatchedToUser.fatherName}` : r.dispatchedTo || '—',
                   `${r.items?.length || 0} item(s)`, r._qtyConfirmed ?? '—', r.dispatchStatus, formatServerDate(r.dispatchDate)]
-                : [r._drugName || '—',
-                  r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
+                : [r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
                   r.dispatchedToUser ? `${r.dispatchedToUser.firstName} ${r.dispatchedToUser.fatherName}` : r.dispatchedTo || '—',
                   `${r.items?.length || 0} item(s)`, r._qtyRejected ?? '—', r.dispatchStatus, formatServerDate(r.dispatchDate)]));
           }} title="Export PDF"><MdPictureAsPdf /></button>
           <button className={styles.actionBtnInline} onClick={() => {
             const data = tab === 'waiting' ? pendingE : tab === 'confirmed' ? confirmedE : rejectedE;
-            const headers = tab === 'waiting' ? ['Drug Name', 'Dispatched By', 'Dispatched To', 'Items', 'Status', 'Dispatch Date']
-              : tab === 'confirmed' ? ['Drug Name', 'Dispatched By', 'Dispatched To', 'Items', 'Qty Confirmed', 'Status', 'Dispatch Date']
-              : ['Drug Name', 'Dispatched By', 'Dispatched To', 'Items', 'Qty Rejected', 'Status', 'Dispatch Date'];
+            const headers = tab === 'waiting' ? ['Dispatched By', 'Dispatched To', 'Items', 'Status', 'Dispatch Date']
+              : tab === 'confirmed' ? ['Dispatched By', 'Dispatched To', 'Items', 'Qty Confirmed', 'Status', 'Dispatch Date']
+              : ['Dispatched By', 'Dispatched To', 'Items', 'Qty Rejected', 'Status', 'Dispatch Date'];
             printTable('Drug Dispatch', headers,
               data.map((r: any) => tab === 'waiting'
-                ? [r._drugName || '—',
-                  r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
+                ? [r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
                   r.dispatchedToUser ? `${r.dispatchedToUser.firstName} ${r.dispatchedToUser.fatherName}` : r.dispatchedTo || '—',
                   `${r.items?.length || 0} item(s)`, r.dispatchStatus, formatServerDate(r.dispatchDate)]
                 : tab === 'confirmed'
-                ? [r._drugName || '—',
-                  r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
+                ? [r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
                   r.dispatchedToUser ? `${r.dispatchedToUser.firstName} ${r.dispatchedToUser.fatherName}` : r.dispatchedTo || '—',
                   `${r.items?.length || 0} item(s)`, r._qtyConfirmed ?? '—', r.dispatchStatus, formatServerDate(r.dispatchDate)]
-                : [r._drugName || '—',
-                  r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
+                : [r.dispatchedByUser ? `${r.dispatchedByUser.firstName} ${r.dispatchedByUser.fatherName}` : r.dispatchedBy || '—',
                   r.dispatchedToUser ? `${r.dispatchedToUser.firstName} ${r.dispatchedToUser.fatherName}` : r.dispatchedTo || '—',
                   `${r.items?.length || 0} item(s)`, r._qtyRejected ?? '—', r.dispatchStatus, formatServerDate(r.dispatchDate)]));
           }} title="Print"><MdPrint /></button>

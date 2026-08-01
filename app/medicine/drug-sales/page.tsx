@@ -63,6 +63,10 @@ const emptyItemRow = (): SaleItemRow => ({
   dispatchDetailId: null,
 });
 
+const fmtExpiry = (d?: string | null) => (d ? new Date(d).toLocaleDateString() : '');
+const withBatchExpiry = (name: string, batch?: string | null, expiry?: string | null) =>
+  `${name}${batch ? ` - Batch: ${batch}` : ''}${expiry ? ` - Exp: ${fmtExpiry(expiry)}` : ''}`;
+
 interface FormData {
   fullName: string;
   mrn: string;
@@ -149,9 +153,11 @@ function DrugSaleForm() {
       for (const di of d.items) {
         const s = di.purchaseItem || stockById[di.purchaseItemId];
         if (!s) continue;
-        const drugLabel = s.drug
-          ? `${s.drug.genericName} ${s.drug.dosageForm} - ${s.drug.strength}`
-          : s.drugName;
+        const drugLabel = withBatchExpiry(
+          s.drug ? `${s.drug.genericName} ${s.drug.dosageForm} - ${s.drug.strength}` : s.drugName,
+          s.batchNo,
+          s.expiryDate
+        );
         if (di.currentQty <= 0) continue;
         options.push({ dispatchDetailId: di.id, drugLabel, salePrice: Number(s.salePrice), purchasePrice: Number(s.purchasePrice), qtyRemaining: di.currentQty });
       }
@@ -165,9 +171,11 @@ function DrugSaleForm() {
       for (const di of d.items) {
         const s = di.purchaseItem || itemStockById[di.purchaseItemId];
         if (!s) continue;
-        const itemLabel = s.item
-          ? (s.itemName && s.itemName !== s.item.name ? s.itemName : `${s.item.name} (${s.item.itemCode})`)
-          : s.itemName;
+        const itemLabel = withBatchExpiry(
+          s.item ? (s.itemName && s.itemName !== s.item.name ? s.itemName : `${s.item.name} (${s.item.itemCode})`) : s.itemName,
+          s.batchNo,
+          s.expiryDate
+        );
         const avail = di.currentQty ?? s.qtyRemaining;
         if (avail <= 0) continue;
         options.push({ dispatchDetailId: di.id, itemLabel, salePrice: Number(s.salePrice), purchasePrice: Number(s.purchasePrice), qtyRemaining: avail });
@@ -602,7 +610,11 @@ function NonDrugSaleTab() {
       for (const di of d.items) {
         const s = di.purchaseItem || itemStockById[di.purchaseItemId];
         if (!s) continue;
-        const itemLabel = s.item ? (s.itemName && s.itemName !== s.item.name ? s.itemName : `${s.item.name} (${s.item.itemCode})`) : s.itemName;
+        const itemLabel = withBatchExpiry(
+          s.item ? (s.itemName && s.itemName !== s.item.name ? s.itemName : `${s.item.name} (${s.item.itemCode})`) : s.itemName,
+          s.batchNo,
+          s.expiryDate
+        );
         const avail = di.currentQty ?? s.qtyRemaining;
         if (avail <= 0) continue;
         options.push({ dispatchDetailId: di.id, itemLabel, salePrice: Number(s.salePrice), purchasePrice: Number(s.purchasePrice), qtyRemaining: avail });
