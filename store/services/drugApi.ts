@@ -1,6 +1,9 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from './baseQueryWithReauth';
 
+/** Expiry alert window (3 months). Shared so the dashboard and the alert page always agree. */
+export const EXPIRY_ALERT_DAYS = 90;
+
 export interface DrugMaster {
   id: string;
   genericName: string;
@@ -817,7 +820,7 @@ export const drugApi = createApi({
       },
     }),
     getExpiryAlerts: builder.query<DrugPurchaseItem[], number>({
-      query: (days = 30) => `/drug-purchases/expiry-alert?days=${days}`,
+      query: (days = EXPIRY_ALERT_DAYS) => `/drug-purchases/expiry-alert?days=${days}`,
       transformResponse: (res: { data: { name: string; batchNo: string; expiryDate: string; qtyRemaining: number; remainingDays: number; type: string }[] }) =>
         res.data.map((r, i) => ({
           id: `${r.batchNo}-${i}`,
