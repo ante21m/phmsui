@@ -2,298 +2,11 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  MdDashboard, MdMedicalServices, MdKeyboardArrowDown,
-  MdKeyboardArrowRight, MdShoppingCart, MdCheckCircle,
-  MdWarning, MdNotifications, MdAdd, MdInventory,
-  MdLocalHospital, MdReport, MdPayment, MdUndo, MdBusiness,
-  MdPeople, MdPointOfSale,
-} from 'react-icons/md';
+import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
 
 import styles from './Sidebar.module.css';
 import { useGetUserDetailQuery } from '@/store/services/drugApi';
-
-// ─── Types 
-
-type Role =
-  | 'admin'
-  | 'pharmacist'
-  | 'pharmacy-inventory-officer'
-  | 'store-manager';
-
-interface NavItem {
-  label: string;
-  href?: string;
-  icon?: React.ReactNode;
-  children?: NavItem[];
-  badge?: number;
-  /**
-   * Which non-admin roles can see this item.
-   *
-   * undefined  → admin-only (no roles key at all)
-   * []         → admin-only (explicit empty array)
-   * ['pharmacist', ...]  → those roles + admin can see it
-   */
-  roles?: Role[];
-}
-
-// ─── Nav tree 
-
-const navItems: NavItem[] = [
-  // ── Dashboard 
-  {
-    label: 'Dashboard',
-    href: '/dashboard',
-    icon: <MdDashboard />,
-    roles: ['pharmacist', 'pharmacy-inventory-officer', 'store-manager'],
-  },
-
-  // ── Medicine
-  {
-    label: 'Medicine',
-    icon: <MdMedicalServices />,
-    roles: ['pharmacist', 'pharmacy-inventory-officer', 'store-manager'],
-    children: [
-      {
-        label: 'Drug Master',
-        href: '/medicine/drug-master',
-        icon: <MdAdd />,
-        roles: ['pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Item Master',
-        href: '/medicine/item-master',
-        icon: <MdAdd />,
-        roles: ['pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Purchased Drugs',
-        href: '/medicine/purchased-drugs',
-        icon: <MdShoppingCart />,
-        roles: ['pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Purchased Items',
-        href: '/medicine/purchased-items',
-        icon: <MdShoppingCart />,
-        roles: ['pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Dispatch Confirmation',
-        href: '/medicine/dispatch-confirmation',
-        icon: <MdCheckCircle />,
-        roles: ['pharmacist'],
-      },
-      {
-        label: 'Item Dispatch Confirmation',
-        href: '/medicine/item-dispatch-confirmation',
-        icon: <MdCheckCircle />,
-        roles: ['pharmacist'],
-      },
-      {
-        label: 'Low Stock',
-        href: '/medicine/low-stock',
-        icon: <MdWarning />,
-        roles: ['pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Expiry Alert',
-        href: '/medicine/expiry-alert',
-        icon: <MdWarning />,
-        roles: ['pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Drug Losses',
-        href: '/medicine/drug-losses',
-        icon: <MdReport />,
-        roles: ['pharmacist'],
-      },
-      {
-        label: 'Drug Loss Review',
-        href: '/medicine/drug-loss-review',
-        icon: <MdCheckCircle />,
-        roles: ['pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Drug Sales',
-        href: '/medicine/drug-sales',
-        icon: <MdPointOfSale />,
-        roles: ['pharmacist'],
-      },
-      {
-        label: 'Sold List',
-        href: '/medicine/sold-drugs',
-        icon: <MdPointOfSale />,
-        roles: ['pharmacist', 'pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Drug Sales Returns',
-        href: '/medicine/drug-sales-returns',
-        icon: <MdUndo />,
-        roles: ['store-manager'],
-      },
-    ],
-  },
-
-  // ── Admin-only 
-  // roles: [] means ONLY admin can see these — no other role matches
-  {
-    label: 'Workflow Management',
-    href: '/workflow-management',
-    icon: <MdCheckCircle />,
-    roles: [],
-  },
-  {
-    label: 'Users',
-    href: '/users',
-    icon: <MdPeople />,
-    roles: [],
-  },
-
-  // ── Departments / Stores / Suppliers 
-  {
-    label: 'Departments',
-    href: '/medicine/departments',
-    icon: <MdBusiness />,
-    roles: ['pharmacy-inventory-officer'],
-  },
-  {
-    label: 'Stores',
-    href: '/medicine/stores',
-    icon: <MdBusiness />,
-    roles: ['pharmacy-inventory-officer'],
-  },
-  {
-    label: 'Suppliers',
-    href: '/medicine/suppliers',
-    icon: <MdBusiness />,
-    roles: ['pharmacy-inventory-officer'],
-  },
-
-  // ── Inventory 
-  {
-    label: 'Inventory Requests',
-    href: '/inventory-requests',
-    icon: <MdInventory />,
-    roles: ['pharmacist'],
-  },
-  {
-    label: 'Inventory Approvals',
-    href: '/inventory-approvals',
-    icon: <MdCheckCircle />,
-    roles: ['pharmacy-inventory-officer'],
-  },
-
-  // ── Pharmacy Requests 
-  {
-    label: 'Pharmacy Requests',
-    icon: <MdInventory />,
-    roles: ['pharmacist', 'pharmacy-inventory-officer'],
-    children: [
-      {
-        label: 'Drug Request',
-        href: '/pharmacy-requests',
-        icon: <MdInventory />,
-        roles: ['pharmacist'],
-      },
-      {
-        label: 'Request Confirmation',
-        href: '/pharmacy-requests/confirmation',
-        icon: <MdCheckCircle />,
-        roles: ['pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Request History',
-        href: '/pharmacy-requests/history',
-        icon: <MdCheckCircle />,
-        roles: ['pharmacist', 'pharmacy-inventory-officer'],
-      },
-    ],
-  },
-
-  // ── Reports 
-  {
-    label: 'Reports',
-    icon: <MdReport />,
-    roles: ['pharmacist', 'pharmacy-inventory-officer'],
-    children: [
-      {
-        label: 'Available Items',
-        href: '/reports/available-items',
-        icon: <MdInventory />,
-        roles: ['pharmacist', 'pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Sold Drug Counts',
-        href: '/reports/sold-drug-counts',
-        icon: <MdPointOfSale />,
-        roles: ['pharmacist', 'pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Sold Item Counts',
-        href: '/reports/sold-item-counts',
-        icon: <MdPointOfSale />,
-        roles: ['pharmacist', 'pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Batch Stock',
-        href: '/reports/batch-stock',
-        icon: <MdLocalHospital />,
-        roles: ['pharmacist', 'pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Income Summary',
-        href: '/reports/income-summary',
-        icon: <MdPayment />,
-        roles: ['pharmacy-inventory-officer'],
-      },
-      {
-        label: 'Profit Summary',
-        href: '/reports/profit-summary',
-        icon: <MdReport />,
-        roles: ['pharmacy-inventory-officer'],
-      },
-    ],
-  },
-
-  // ── My Purchase Requests 
-  {
-    label: 'My Purchase Requests',
-    href: '/purchase-requests',
-    icon: <MdInventory />,
-    roles: ['pharmacy-inventory-officer'],
-  },
-
-  // ── Notice
-  {
-    label: 'Notice',
-    icon: <MdNotifications />,
-    roles: ['pharmacist', 'pharmacy-inventory-officer'],
-    children: [
-      {
-        label: 'View Notices',
-        href: '/notice/view',
-        icon: <MdNotifications />,
-        roles: ['store-manager'],
-      },
-    ],
-  },
-
-  // ── My Stock 
-  {
-    label: 'My Stock',
-    icon: <MdLocalHospital />,
-    roles: [ 'store-manager'],
-    children: [
-      {
-        label: 'Stock Overview',
-        href: '/stock/overview',
-        icon: <MdLocalHospital />,
-        roles: ['pharmacist', 'pharmacy-inventory-officer', 'store-manager'],
-      },
-    ],
-  },
-];
+import { getVisibleMenu } from './nav.config';
 
 const MIN_WIDTH = 100;
 const MAX_WIDTH = 400;
@@ -301,45 +14,12 @@ const MAX_WIDTH = 400;
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: user } = useGetUserDetailQuery();
-  const userRoles: string[] = user?.roles ?? [];
 
-  const isAdmin = userRoles.includes('admin');
-
-   const hasRole = useCallback(
-    (roles?: Role[]): boolean => {
-      if (isAdmin) return true;                        // admin sees everything
-      if (!roles || roles.length === 0) return false;  // admin-only items
-      return roles.some((r) => userRoles.includes(r)); // role match check
-    },
-    [isAdmin, userRoles],
+  // Menu structure and role access are defined in ./nav.config.tsx
+  const visibleItems = useMemo(
+    () => getVisibleMenu(user?.roles ?? []),
+    [user?.roles],
   );
-
-  /**
-   * Build the visible nav tree for the current user.
-   * Every child uses its OWN explicit roles — no parent fallback —
-   * so admin-only parents can never accidentally expose their children.
-   */
-  const visibleItems = useMemo<NavItem[]>(() => {
-    const filterItem = (item: NavItem): NavItem | null => {
-      // Check this item's own roles first
-      if (!hasRole(item.roles)) return null;
-
-      // Leaf node — visible
-      if (!item.children) return item;
-
-      // Group — filter children by their OWN roles (no parent fallback)
-      const visibleChildren = item.children
-        .filter((child) => hasRole(child.roles))
-        .map((child) => ({ ...child }));
-
-      // Hide the group if no children passed the filter
-      if (visibleChildren.length === 0) return null;
-
-      return { ...item, children: visibleChildren };
-    };
-
-    return navItems.map(filterItem).filter(Boolean) as NavItem[];
-  }, [hasRole]);
 
   // Groups default to expanded
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({
@@ -358,7 +38,7 @@ export default function Sidebar() {
   const toggleGroup = (label: string) =>
     setCollapsed((prev) => ({ ...prev, [label]: !prev[label] }));
 
-  // ── Drag-to-resize 
+  // ── Drag-to-resize
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     dragging.current = true;
@@ -385,7 +65,7 @@ export default function Sidebar() {
     };
   }, []);
 
-  // ── Render 
+  // ── Render
   return (
     <aside className={styles.sidebar} style={{ width: sidebarWidth }}>
       {/* Logo */}
@@ -401,7 +81,7 @@ export default function Sidebar() {
       {/* Nav */}
       <nav className={styles.nav}>
         {visibleItems.map((item) => (
-          <div key={item.label}>
+          <div key={item.key}>
 
             {/* ── Leaf link ── */}
             {item.href ? (
@@ -433,9 +113,9 @@ export default function Sidebar() {
 
                 {collapsed[item.label] && item.children && (
                   <div className={styles.subNav}>
-                    {item.children.map((child, idx) => (
+                    {item.children.map((child) => (
                       <Link
-                        key={`${child.href}-${idx}`}
+                        key={child.key}
                         href={child.href || '#'}
                         className={`${styles.subNavItem} ${isActive(child.href) ? styles.subNavItemActive : ''}`}
                       >

@@ -1,12 +1,12 @@
 'use client';
 import { MdMedicalServices, MdWarning, MdShoppingCart, MdInventory } from 'react-icons/md';
-import { useGetDrugsQuery, useGetLowStockDrugsQuery, useGetExpiryAlertsQuery } from '@/store/services/drugApi';
+import { useGetDrugsQuery, useGetLowStockDrugsQuery, useGetExpiryAlertsQuery, EXPIRY_ALERT_DAYS } from '@/store/services/drugApi';
 import styles from './Dashboard.module.css';
 
 export default function DashboardPage() {
   const { data: drugs = [] } = useGetDrugsQuery();
   const { data: lowStock } = useGetLowStockDrugsQuery();
-  const { data: expiry = [] } = useGetExpiryAlertsQuery(30);
+  const { data: expiry = [] } = useGetExpiryAlertsQuery(EXPIRY_ALERT_DAYS);
   const lowStockCount = lowStock?.data?.length ?? 0;
 
   const stats = [

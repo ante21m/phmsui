@@ -2,12 +2,12 @@
 import { useMemo } from 'react';
 import { MdWarning } from 'react-icons/md';
 import { SmartTable, type SmartColumn } from '@/components';
-import { useGetExpiryAlertsQuery, DrugPurchaseItem } from '@/store/services/drugApi';
+import { useGetExpiryAlertsQuery, DrugPurchaseItem, EXPIRY_ALERT_DAYS } from '@/store/services/drugApi';
 import { formatServerDate } from '@/app/reports/reportUtils';
 import styles from './ExpiryAlert.module.css';
 
 export default function ExpiryAlertPage() {
-  const { data, isLoading } = useGetExpiryAlertsQuery(30);
+  const { data, isLoading } = useGetExpiryAlertsQuery(EXPIRY_ALERT_DAYS);
   const rawItems = Array.isArray(data) ? data : [];
   const items = useMemo(() => rawItems.filter(i => i.qtyRemaining > 0), [rawItems]);
 
@@ -37,7 +37,7 @@ export default function ExpiryAlertPage() {
         render: (row) => {
           if (row.remainingDays == null) return <span>—</span>;
           const d = row.remainingDays;
-          const cls = d <= 0 ? styles.daysExpired : d <= 30 ? styles.daysUrgent : d <= 60 ? styles.daysSoon : styles.daysOk;
+          const cls = d <= 0 ? styles.daysExpired : d <= 30 ? styles.daysUrgent : d <= EXPIRY_ALERT_DAYS ? styles.daysSoon : styles.daysOk;
           return <span className={cls}>{d === 0 ? 'Today' : d < 0 ? `${d} day${d !== -1 ? 's' : ''} ago` : `${d} day${d !== 1 ? 's' : ''} left`}</span>;
         },
       },
